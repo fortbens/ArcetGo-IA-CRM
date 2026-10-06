@@ -1,0 +1,6 @@
+{
+  "name": "AcertGo - CRM/ERP & Fintech Imobiliária",
+  "description": "Ecossistema de alta performance para imobiliárias: CRM omnichannel com roleta de atendimento WhatsApp, Espelho de Vendas 360, motor Fintech de Split automatizado, esteira CCA e BI preditivo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

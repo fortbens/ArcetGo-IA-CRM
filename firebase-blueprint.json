@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "SystemThemeBranding": {
+      "title": "SystemThemeBranding",
+      "description": "Global white-label branding, logo, colors and theme synchronized across all devices",
+      "type": "object",
+      "properties": {
+        "platformName": { "type": "string" },
+        "tagline": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "faviconUrl": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "secondaryColor": { "type": "string" },
+        "accentColor": { "type": "string" },
+        "sidebarTheme": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "SalesPageCms": {
+      "title": "SalesPageCms",
+      "description": "Public sales page content, team photos, footer logo, testimonials and pricing synchronized across all devices",
+      "type": "object",
+      "properties": {
+        "hero": { "type": "object" },
+        "team": { "type": "array" },
+        "footer": { "type": "object" },
+        "plans": { "type": "array" },
+        "testimonials": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "CRM Lead record for buyers and tenants in sales pipeline",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "source": { "type": "string" },
+        "stage": { "type": "string" },
+        "assignedBrokerName": { "type": "string" },
+        "interestType": { "type": "string" },
+        "propertyOfInterestTitle": { "type": "string" },
+        "budgetMax": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "rating": { "type": "number" }
+      }
+    },
+    "Property": {
+      "title": "Property",
+      "description": "Real estate property inventory item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "title": { "type": "string" },
+        "propertyType": { "type": "string" },
+        "transactionType": { "type": "string" },
+        "status": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "pricing": { "type": "object" },
+        "specs": { "type": "object" },
+        "address": { "type": "object" },
+        "createdAt": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/system_config/{configDocId}": {
+      "schema": "SystemThemeBranding",
+      "description": "System configuration documents for branding, theme and CMS content"
+    },
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "CRM leads and clients pipeline collection"
+    },
+    "/properties/{propertyId}": {
+      "schema": "Property",
+      "description": "Real estate property inventory collection"
+    }
+  }
+}

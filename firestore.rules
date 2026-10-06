@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Configurações do Sistema, Marca White-Label, Logo de Login/Rodapé e Fotos da Equipe (CMS)
+    // Permite leitura pública para que celular e desktop sempre carreguem a marca atualizada
+    match /system_config/{configDocId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Coleções da Plataforma
+    match /tenants/{tenantId} {
+      allow read, write: if true;
+    }
+    
+    match /platform_users/{userId} {
+      allow read, write: if true;
+    }
+
+    match /leads/{leadId} {
+      allow read, write: if true;
+    }
+
+    match /properties/{propertyId} {
+      allow read, write: if true;
+    }
+
+    match /owners/{ownerId} {
+      allow read, write: if true;
+    }
+
+    match /contracts/{contractId} {
+      allow read, write: if true;
+    }
+
+    match /commissions/{commissionId} {
+      allow read, write: if true;
+    }
+
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

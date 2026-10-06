@@ -1,0 +1,104 @@
+name: Deploy CPanel Homehost (FTP/FTPS)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - principal
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-cpanel:
+    name: Build & Deploy para cPanel Homehost
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar Dependências
+        run: npm install --legacy-peer-deps
+
+      - name: Compilar Projeto (Vite & TypeScript)
+        run: npm run build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+
+      - name: Preparar Build para Raiz e CRM com .htaccess Dedicados
+        run: |
+          # 1. Garantir que dist tenha o .htaccess com no-cache estrito da raiz (public_html/)
+          cp public/.htaccess dist/.htaccess
+
+          # 2. Criar pasta dist-crm dedicada para o subdomínio/pasta aicrm
+          rm -rf dist-crm
+          cp -r dist dist-crm
+
+          # 3. Aplicar o .htaccess dedicado do CRM na pasta dist-crm
+          cp public/.htaccess-crm dist-crm/.htaccess
+
+      - name: Sincronizar via FTP para Raiz (public_html/)
+        env:
+          FTP_SERVER: ${{ secrets.CPANEL_FTP_SERVER }}
+          FTP_USER: ${{ secrets.CPANEL_FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.CPANEL_FTP_PASSWORD }}
+        if: ${{ env.FTP_SERVER != '' && env.FTP_USER != '' && env.FTP_PASS != '' }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_SERVER }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          server-dir: 'public_html/'
+          local-dir: './dist/'
+          state-name: '.ftp-deploy-sync-state-root.json'
+          dangerous-clean-slate: false
+          timeout: 60000
+          log-level: verbose
+          security: loose
+
+      - name: Sincronizar via FTP para CRM (public_html/aicrm/)
+        env:
+          FTP_SERVER: ${{ secrets.CPANEL_FTP_SERVER }}
+          FTP_USER: ${{ secrets.CPANEL_FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.CPANEL_FTP_PASSWORD }}
+        if: ${{ env.FTP_SERVER != '' && env.FTP_USER != '' && env.FTP_PASS != '' }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.CPANEL_FTP_SERVER }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          server-dir: 'public_html/aicrm/'
+          local-dir: './dist-crm/'
+          state-name: '.ftp-deploy-sync-state-crm.json'
+          dangerous-clean-slate: false
+          timeout: 60000
+          log-level: verbose
+          security: loose
+
+      - name: Aviso de Deploy cPanel (Segredos Não Configurados)
+        env:
+          FTP_SERVER: ${{ secrets.CPANEL_FTP_SERVER }}
+          FTP_USER: ${{ secrets.CPANEL_FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.CPANEL_FTP_PASSWORD }}
+        if: ${{ env.FTP_SERVER == '' || env.FTP_USER == '' || env.FTP_PASS == '' }}
+        run: |
+          echo "=========================================================================="
+          echo "ℹ️ SUCESSO NO BUILD! O projeto foi compilado perfeitamente na pasta dist/."
+          echo "Para ativar o envio automático via FTP para sua hospedagem cPanel Homehost,"
+          echo "configure os seguintes segredos no repositório GitHub (Settings -> Secrets and variables -> Actions):"
+          echo "  - CPANEL_FTP_SERVER (ex: ftp.seudominio.com.br ou IP do servidor)"
+          echo "  - CPANEL_FTP_USERNAME (ex: usuario_cpanel ou conta FTP)"
+          echo "  - CPANEL_FTP_PASSWORD (senha da conta FTP)"
+          echo "Destinos configurados: public_html/ (raiz) e public_html/aicrm/ (subdomínio)"
+          echo "=========================================================================="

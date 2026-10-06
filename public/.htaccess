@@ -1,0 +1,85 @@
+# ====================================================================
+# Configuração Apache / LiteSpeed cPanel HomeHost para Aplicações SPA
+# AcertGo - Domínio Principal (public_html/)
+# Controle Estrito de Cache & Roteamento SPA
+# ====================================================================
+
+# 1. Desativar LiteSpeed Cache no servidor (evita cache de HTML pelo servidor)
+<IfModule LiteSpeed>
+  CacheLookup off
+  CacheDisable
+</IfModule>
+
+# 2. Desativar ETag para forçar navegadores a sempre buscarem a versão mais recente
+<IfModule mod_headers.c>
+  Header always unset ETag
+</IfModule>
+FileETag None
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Forçar HTTPS (SSL gratuito HomeHost Let's Encrypt)
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Redirecionar acessos ao CRM feitos no domínio principal para o subdomínio aicrm
+  RewriteCond %{HTTP_HOST} ^(www\.)?acertgo\.com\.br$ [NC]
+  RewriteRule ^(crm|login|painel|app)/?$ https://aicrm.acertgo.com.br/ [R=301,L]
+
+  # Redirecionar acessos à página de vendas feitos no subdomínio do CRM para o domínio principal
+  RewriteCond %{HTTP_HOST} ^aicrm\.acertgo\.com\.br$ [NC]
+  RewriteRule ^(vendas|lp|sales)/?$ https://acertgo.com.br/ [R=301,L]
+
+  # Se o arquivo ou diretório físico existir, serve diretamente
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Caso contrário, redireciona todas as requisições para o index.html (SPA routing)
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Habilitar compressão GZIP / Deflate para alta velocidade
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml
+</IfModule>
+
+# Controle Rígido de Cache: No-Cache Estrito para index.html e páginas HTML
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm)$">
+    Header always set Cache-Control "no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+    Header always set Surrogate-Control "no-store"
+  </FilesMatch>
+
+  # Assets versionados com hash único gerado pelo Vite (imutáveis por 1 ano)
+  <FilesMatch "\.(js|css|webp|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+# Configuração de Cache dos assets compilados
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/gif "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/xhtml+xml "access plus 0 seconds"
+</IfModule>
+
+# Cabeçalhos de Segurança
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

@@ -1,0 +1,23 @@
+---
+deployment:
+  tasks:
+    # 1. Diretórios oficiais no cPanel HomeHost (usa ${HOME} para compatibilidade total)
+    - export DEPLOY_DIR=${HOME}/public_html
+    - export CRM_DIR=${HOME}/public_html/aicrm
+    - /bin/mkdir -p ${DEPLOY_DIR}
+    - /bin/mkdir -p ${CRM_DIR}
+
+    # 2. Garante o arquivo .htaccess com suporte a SPA e HTTPS em ambos os domínios
+    - /bin/cp public/.htaccess ${DEPLOY_DIR}/.htaccess 2>/dev/null || true
+    - /bin/cp public/.htaccess ${CRM_DIR}/.htaccess 2>/dev/null || true
+
+    # 3. Copia os arquivos compilados da pasta dist/ para a página de vendas e para o CRM
+    - |
+      if [ -d "dist" ] && [ "$(ls -A dist 2>/dev/null)" ]; then
+        /bin/cp -R dist/* ${DEPLOY_DIR}/
+        /bin/cp -R dist/* ${CRM_DIR}/
+        echo "Sucesso: Arquivos de dist/ copiados para ${DEPLOY_DIR} e ${CRM_DIR}"
+      else
+        echo "Aviso: Pasta dist/ não encontrada no Git. Como o projeto é React/Vite, suba a pasta dist/ pelo Gerenciador de Arquivos ou via GitHub Actions FTP."
+      fi
+    - exit 0

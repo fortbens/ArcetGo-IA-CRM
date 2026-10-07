@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   X, 
   Building2, 
@@ -20,7 +20,13 @@ import {
   Trash2,
   Lock,
   Unlock,
-  LogIn
+  LogIn,
+  Eye,
+  EyeOff,
+  Copy,
+  Sparkles,
+  Send,
+  Globe
 } from 'lucide-react';
 import { TenantAgency, SaaSModule, TenantStatus } from '../../types/superAdmin';
 
@@ -45,7 +51,28 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({
   onImpersonate,
   availableModules,
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
   if (!isOpen || !tenant) return null;
+
+  const handleCopyCard = () => {
+    const text = `🏢 *ACERTGO - CREDENCIAIS DE ACESSO DA IMOBILIÁRIA*
+--------------------------------------------------
+*Imobiliária:* ${tenant.tradeName}
+*Login do Diretor:* ${tenant.ownerEmail}
+*Senha de Acesso:* ${tenant.adminPassword || 'Acert@2026'}
+*Código de Convite da Equipe:* ${tenant.inviteCode || 'IMO-ACERT-2026'}
+*Módulo de Entrada:* ${tenant.initialModule || 'kanban'}
+*Site Escolhido:* ${tenant.chosenSiteTemplate || 'URBAN_FLOW'}
+*Link do Sistema:* ${tenant.subdomain ? `https://${tenant.subdomain}` : 'https://matriz.acertgo.com.br'}
+--------------------------------------------------
+👉 Inicie seus trabalhos acessando o link com seu login e senha!`;
+
+    navigator.clipboard.writeText(text);
+    setCopyFeedback('Copiado com sucesso!');
+    setTimeout(() => setCopyFeedback(null), 3000);
+  };
 
   const getStatusBadge = (status: TenantStatus) => {
     switch (status) {
@@ -191,6 +218,87 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({
             </button>
           </div>
 
+          {/* CREDENCIAIS DE ACESSO & INÍCIO DE TRABALHO REAL */}
+          <div className="p-4.5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 text-white border border-slate-700/80 shadow-lg space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Key className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-100 flex items-center gap-2">
+                    Credenciais de Entrada & Convite da Equipe
+                    <span className="text-[9px] font-normal px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Início de Trabalho Ativo
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Dados configurados para o diretor entrar e para a equipe se cadastrar
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyCard}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  {copyFeedback || 'Copiar Ficha WhatsApp'}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              {/* E-mail de Login */}
+              <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                  Login do Diretor
+                </span>
+                <div className="font-mono font-medium text-slate-200 truncate select-all" title={tenant.ownerEmail}>
+                  {tenant.ownerEmail}
+                </div>
+              </div>
+
+              {/* Senha */}
+              <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase text-slate-400 mb-1">
+                  <span>Senha de Acesso</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                  </button>
+                </div>
+                <div className="font-mono font-bold text-amber-400 select-all">
+                  {showPassword ? (tenant.adminPassword || 'Acert@2026') : '••••••••'}
+                </div>
+              </div>
+
+              {/* Código de Convite */}
+              <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                  Convite da Equipe
+                </span>
+                <div className="font-mono font-bold text-cyan-400 uppercase select-all">
+                  {tenant.inviteCode || `IMO-${tenant.tradeName?.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)}-2026`}
+                </div>
+              </div>
+
+              {/* Módulo & Site */}
+              <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700">
+                <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                  Módulo & Site Inicial
+                </span>
+                <div className="font-semibold text-emerald-400 text-[11px] truncate">
+                  🚀 {tenant.initialModule || 'kanban'} · {tenant.chosenSiteTemplate || 'URBAN_FLOW'}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Endereço & Contato */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
@@ -306,17 +414,28 @@ export const TenantDetailModal: React.FC<TenantDetailModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
+                onImpersonate(tenant.id);
+                onClose();
+              }}
+              className="px-3.5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              title={`Acessar instância de ${tenant.tradeName} com o gestor principal ${tenant.ownerName}`}
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Acessar Instância ({tenant.ownerName.split(' ')[0]})</span>
+            </button>
+            <button
+              onClick={() => {
                 onEdit(tenant);
                 onClose();
               }}
-              className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Edit2 className="w-3.5 h-3.5" />
               Editar Dados
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200 rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
             >
               Fechar
             </button>

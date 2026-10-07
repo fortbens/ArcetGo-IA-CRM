@@ -215,10 +215,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Bell, 
           badge: unreadNotificationsCount && unreadNotificationsCount > 0 ? `${unreadNotificationsCount}` : undefined
         },
-        { id: 'super_admin' as NavTabId, label: 'Painel do Administrador', icon: ShieldCheck },
+        { id: 'super_admin' as NavTabId, label: 'Super Admin (Plataforma Geral)', icon: ShieldCheck },
       ],
     },
   ];
+
+  const isSuperAdmin = userRole === 'SUPER_ADMIN';
 
   const handleItemClick = (tabId: NavTabId) => {
     onSelectTab(tabId);
@@ -335,6 +337,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {menuSections.map((section) => {
           if (isExternalPartner && section.title !== 'Imóveis & Lançamentos') return null;
 
+          const allowedItems = section.items.filter((item) => {
+            if (item.id === 'super_admin' && !isSuperAdmin) {
+              return false;
+            }
+            return true;
+          });
+
+          if (allowedItems.length === 0) return null;
+
           return (
             <div key={section.title}>
               {!isCollapsed && (
@@ -343,7 +354,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               )}
               <div className="space-y-0.5">
-                {section.items.map((item) => {
+                {allowedItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = currentTab === item.id;
                   return (
@@ -373,13 +384,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       )}
                     </button>
 
-                    {item.id === 'super_admin' && onToggleSystemEnvironment && !isCollapsed && (
+                    {item.id === 'super_admin' && isSuperAdmin && onToggleSystemEnvironment && !isCollapsed && (
                       <div className="mt-1 mb-2 p-2 bg-slate-950/70 rounded-xl border border-slate-800/80 space-y-1.5">
                         <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold px-1">
                           <span>Ambiente:</span>
                           <span className={systemEnvironment === 'PRODUCTION' ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
                             {systemEnvironment === 'PRODUCTION' ? 'Produção (Zerado)' : 'Testes'}
                           </span>
+                        </div>
+                        <div className="text-[9px] text-slate-500 font-medium px-1 flex items-center justify-between">
+                          <span>Exclusivo Super Admin</span>
                         </div>
                         <div className="grid grid-cols-2 gap-1">
                           <button

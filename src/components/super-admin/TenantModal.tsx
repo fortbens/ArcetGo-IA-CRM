@@ -11,7 +11,22 @@ import {
   Phone, 
   User, 
   MapPin, 
-  Palette 
+  Palette,
+  Key,
+  Eye,
+  EyeOff,
+  Copy,
+  Sparkles,
+  Send,
+  CheckCircle2,
+  LayoutTemplate,
+  RefreshCw,
+  Shuffle,
+  Columns,
+  Home,
+  Wallet,
+  LayoutDashboard,
+  FileSignature
 } from 'lucide-react';
 import { TenantAgency, SaaSPlan, SaaSModule, TenantStatus } from '../../types/superAdmin';
 
@@ -56,15 +71,45 @@ export const TenantModal: React.FC<TenantModalProps> = ({
       secondaryColor: '#0ea5e9',
       appName: ''
     },
-    paymentMethod: 'PIX'
+    paymentMethod: 'PIX',
+    adminPassword: '',
+    inviteCode: '',
+    initialModule: 'kanban',
+    chosenSiteTemplate: 'URBAN_FLOW',
+    chosenSiteTitle: ''
   });
 
-  const [activeTab, setActiveTab] = useState<'DADOS' | 'PLANO_MODULOS' | 'WHITE_LABEL'>('DADOS');
+  const [activeTab, setActiveTab] = useState<'DADOS' | 'ACESSO_CONVITE' | 'PLANO_MODULOS' | 'WHITE_LABEL'>('DADOS');
+  const [showPassword, setShowPassword] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
+  // Helper para gerar senha segura e código de convite
+  const generateStrongPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let pass = 'Acert#';
+    for (let i = 0; i < 4; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+  };
+
+  const generateInviteCode = (tradeName?: string) => {
+    const clean = (tradeName || 'IMO').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+    return `${clean || 'IMO'}-${Math.floor(1000 + Math.random() * 9000)}`;
+  };
 
   useEffect(() => {
     if (tenantToEdit) {
-      setFormData({ ...tenantToEdit });
+      setFormData({ 
+        ...tenantToEdit,
+        adminPassword: tenantToEdit.adminPassword || 'Acert@2026',
+        inviteCode: tenantToEdit.inviteCode || `IMO-${tenantToEdit.tradeName?.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'ACERT'}-2026`,
+        initialModule: tenantToEdit.initialModule || 'kanban',
+        chosenSiteTemplate: tenantToEdit.chosenSiteTemplate || 'URBAN_FLOW',
+        chosenSiteTitle: tenantToEdit.chosenSiteTitle || `${tenantToEdit.tradeName} · Imóveis & Oportunidades`
+      });
     } else {
+      const generatedPass = generateStrongPassword();
       setFormData({
         name: '',
         tradeName: '',
@@ -89,10 +134,33 @@ export const TenantModal: React.FC<TenantModalProps> = ({
           secondaryColor: '#0ea5e9',
           appName: ''
         },
-        paymentMethod: 'PIX'
+        paymentMethod: 'PIX',
+        adminPassword: generatedPass,
+        inviteCode: 'IMO-NOVA-2026',
+        initialModule: 'kanban',
+        chosenSiteTemplate: 'URBAN_FLOW',
+        chosenSiteTitle: ''
       });
     }
   }, [tenantToEdit, availablePlans]);
+
+  const handleCopyAccessCard = () => {
+    const text = `🏢 *ACERTGO IMOBILIÁRIA - CREDENCIAIS DE ACESSO & INÍCIO DE TRABALHO*
+--------------------------------------------------
+*Imobiliária:* ${formData.tradeName || formData.name || 'Nova Imobiliária'}
+*E-mail de Login do Diretor:* ${formData.ownerEmail || 'Não informado'}
+*Senha de Acesso:* ${formData.adminPassword || 'Acert@2026'}
+*Código de Convite da Equipe:* ${formData.inviteCode || 'IMO-ACERT-2026'}
+*Módulo de Entrada:* ${formData.initialModule || 'Funil Kanban de Leads'}
+*Site Modelo:* ${formData.chosenSiteTemplate || 'Urban Flow & Lançamentos'}
+*Endereço do Sistema:* ${formData.subdomain ? `https://${formData.subdomain}` : 'https://matriz.acertgo.com.br'}
+--------------------------------------------------
+👉 Entre no sistema com seu e-mail e senha para começar o trabalho imediatamente!`;
+
+    navigator.clipboard.writeText(text);
+    setCopyFeedback('Ficha de acesso copiada com sucesso!');
+    setTimeout(() => setCopyFeedback(null), 3000);
+  };
 
   if (!isOpen) return null;
 
@@ -158,36 +226,46 @@ export const TenantModal: React.FC<TenantModalProps> = ({
         </div>
 
         {/* Modal Navigation Tabs */}
-        <div className="flex border-b border-slate-200 px-6 bg-slate-50 gap-4 text-xs font-semibold text-slate-600">
+        <div className="flex border-b border-slate-200 px-4 sm:px-6 bg-slate-50 gap-2 sm:gap-4 text-xs font-semibold text-slate-600 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab('DADOS')}
-            className={`py-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`py-3 border-b-2 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap transition-colors ${
               activeTab === 'DADOS' ? 'border-blue-600 text-blue-600' : 'border-transparent hover:text-slate-900'
             }`}
           >
-            <Building2 className="w-4 h-4" />
+            <Building2 className="w-4 h-4 shrink-0" />
             1. Dados da Imobiliária
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('ACESSO_CONVITE')}
+            className={`py-3 border-b-2 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap transition-colors ${
+              activeTab === 'ACESSO_CONVITE' ? 'border-blue-600 text-blue-600' : 'border-transparent hover:text-slate-900'
+            }`}
+          >
+            <Key className="w-4 h-4 shrink-0 text-amber-500" />
+            2. Acesso, Senha & Convite
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('PLANO_MODULOS')}
-            className={`py-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`py-3 border-b-2 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap transition-colors ${
               activeTab === 'PLANO_MODULOS' ? 'border-blue-600 text-blue-600' : 'border-transparent hover:text-slate-900'
             }`}
           >
-            <Layers className="w-4 h-4" />
-            2. Plano & Módulos ({formData.activeModules?.length || 0})
+            <Layers className="w-4 h-4 shrink-0" />
+            3. Plano & Módulos ({formData.activeModules?.length || 0})
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('WHITE_LABEL')}
-            className={`py-3 border-b-2 flex items-center gap-2 transition-colors ${
+            className={`py-3 border-b-2 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap transition-colors ${
               activeTab === 'WHITE_LABEL' ? 'border-blue-600 text-blue-600' : 'border-transparent hover:text-slate-900'
             }`}
           >
-            <Palette className="w-4 h-4" />
-            3. White-label & Domínio
+            <Palette className="w-4 h-4 shrink-0" />
+            4. White-label & Domínio
           </button>
         </div>
 
@@ -376,6 +454,252 @@ export const TenantModal: React.FC<TenantModalProps> = ({
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'ACESSO_CONVITE' && (
+            <div className="space-y-6">
+              {/* Card de Boas-Vindas & Explicação */}
+              <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-blue-500/10 to-indigo-500/10 border border-amber-300/40 flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-slate-900">
+                    Credenciais de Acesso & Início de Trabalho Real
+                  </h3>
+                  <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                    Defina aqui a <strong>senha inicial</strong> para que a imobiliária entre no sistema com seu login, e o <strong>código de convite</strong> para que os corretores façam seus próprios cadastros isolados nesta filial.
+                  </p>
+                </div>
+              </div>
+
+              {/* Grid: E-mail de Login, Senha e Código de Convite */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Login de Acesso */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    E-mail de Login do Diretor / Gestor *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={formData.ownerEmail || ''}
+                      onChange={(e) => setFormData({ ...formData, ownerEmail: e.target.value })}
+                      placeholder="diretor@imobiliaria.com.br"
+                      className="w-full text-xs pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50 font-medium text-slate-800"
+                    />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
+                  </div>
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Este será o usuário principal (Master Admin) da imobiliária.
+                  </span>
+                </div>
+
+                {/* Senha Inicial */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Senha Inicial de Acesso *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, adminPassword: generateStrongPassword() }))}
+                      className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Gerar Senha Forte
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={formData.adminPassword || ''}
+                      onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
+                      placeholder="Senha de acesso..."
+                      className="w-full text-xs pl-8 pr-10 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono font-medium"
+                    />
+                    <Key className="w-4 h-4 text-amber-500 absolute left-2.5 top-2.5" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    A imobiliária usará esta senha para entrar no sistema.
+                  </span>
+                </div>
+
+                {/* Código de Convite da Equipe */}
+                <div className="sm:col-span-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Código de Convite Exclusivo da Equipe (Corretores & Gerentes)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, inviteCode: generateInviteCode(prev.tradeName) }))}
+                      className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Gerar Código Automático
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.inviteCode || ''}
+                      onChange={(e) => setFormData({ ...formData, inviteCode: e.target.value.toUpperCase().replace(/\s/g, '') })}
+                      placeholder="Ex: IMO-ALPHAVILLE-2026"
+                      className="w-full text-xs pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase font-mono font-bold text-blue-700"
+                    />
+                    <Sparkles className="w-4 h-4 text-blue-500 absolute left-2.5 top-2.5" />
+                  </div>
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Ao abrir a tela de login na opção <strong>Convite</strong>, qualquer corretor com este código entra na equipe desta imobiliária.
+                  </span>
+                </div>
+              </div>
+
+              {/* Módulo Inicial de Trabalho ao Logar */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
+                  Módulo Inicial de Entrada (Pouso ao Efetuar Login)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {[
+                    { id: 'kanban', label: 'Funil Kanban (Leads)', icon: Columns, desc: 'Gestão de leads e esteira' },
+                    { id: 'imoveis', label: 'Estoque de Imóveis', icon: Home, desc: 'Captações e portais' },
+                    { id: 'roleta', label: 'Roleta de Corretores', icon: Shuffle, desc: 'Plantão e atendimento' },
+                    { id: 'sites_modelos', label: 'Site & Portais', icon: Globe, desc: 'Site oficial da imobiliária' },
+                    { id: 'financial_erp', label: 'Financeiro ERP', icon: Wallet, desc: 'Splits, comissões e DRE' },
+                    { id: 'executive_dashboard', label: 'Painel do Diretor', icon: LayoutDashboard, desc: 'Métricas e relatórios CEO' },
+                    { id: 'sales_proposals', label: 'Propostas & Vendas', icon: FileSignature, desc: 'Negociações e contratos' },
+                  ].map((mod) => {
+                    const isSelected = (formData.initialModule || 'kanban') === mod.id;
+                    const IconComp = mod.icon;
+                    return (
+                      <button
+                        type="button"
+                        key={mod.id}
+                        onClick={() => setFormData({ ...formData, initialModule: mod.id })}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          isSelected
+                            ? 'border-blue-600 bg-blue-50/80 shadow-xs ring-1 ring-blue-600'
+                            : 'border-slate-200 bg-white hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <IconComp className={`w-4 h-4 ${isSelected ? 'text-blue-600' : 'text-slate-500'}`} />
+                          {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />}
+                        </div>
+                        <div className={`text-xs font-bold ${isSelected ? 'text-blue-900' : 'text-slate-800'}`}>
+                          {mod.label}
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{mod.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Site Modelo Escolhido para a Imobiliária */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
+                  Site Modelo Escolhido para a Imobiliária
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    {
+                      id: 'URBAN_FLOW',
+                      title: 'Urban Flow & Lançamentos',
+                      badge: 'Moderno & Tecnológico',
+                      colors: 'Azul e Ciano',
+                      desc: 'Lançamentos na planta, studios, simulador de crédito bancário e mapa interativo.',
+                      bgClass: 'from-blue-600 to-cyan-500'
+                    },
+                    {
+                      id: 'EXCLUSIVE_HIGH_END',
+                      title: 'Exclusive High-End VIP',
+                      badge: 'Boutique Alto Luxo',
+                      colors: 'Dark Gold & Preto',
+                      desc: 'Design imersivo luxuoso, fotos cinematográficas, mansões, coberturas e concierge.',
+                      bgClass: 'from-slate-900 to-amber-700'
+                    },
+                    {
+                      id: 'FAST_RENT',
+                      title: 'FastRent & Locação Ágil',
+                      badge: 'Estilo Fintech',
+                      colors: 'Esmeralda & Roxo',
+                      desc: 'Locação sem fiador, análise em 15 minutos, calculadoras e giro rápido.',
+                      bgClass: 'from-emerald-600 to-teal-500'
+                    },
+                    {
+                      id: 'HERITAGE_TRUST',
+                      title: 'Heritage & Tradição Familiar',
+                      badge: 'Autoridade & Bairros',
+                      colors: 'Teal & Âmbar Clássico',
+                      desc: 'Valorização de CRECI tradicional, história da família, depoimentos e consultoria.',
+                      bgClass: 'from-teal-800 to-amber-600'
+                    }
+                  ].map((tpl) => {
+                    const isSelected = (formData.chosenSiteTemplate || 'URBAN_FLOW') === tpl.id;
+                    return (
+                      <div
+                        key={tpl.id}
+                        onClick={() => setFormData({ ...formData, chosenSiteTemplate: tpl.id })}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-600/30 shadow-sm'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${tpl.bgClass}`}>
+                            {tpl.badge}
+                          </span>
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-blue-600" />}
+                        </div>
+                        <div className="text-xs font-bold text-slate-900">{tpl.title}</div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{tpl.desc}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Ficha de Acesso Rápido Pronta (Cartão WhatsApp) */}
+              <div className="p-4 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-md">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Send className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                      Ficha de Acesso Pronta para o Dono da Imobiliária
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyAccessCard}
+                    className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    {copyFeedback || 'Copiar para WhatsApp'}
+                  </button>
+                </div>
+                <div className="bg-slate-950/80 rounded-lg p-3 text-[11px] font-mono text-slate-300 space-y-1 border border-slate-800/80">
+                  <div>🏢 <strong>Imobiliária:</strong> {formData.tradeName || 'Nome Fantasia'}</div>
+                  <div>✉️ <strong>Login:</strong> {formData.ownerEmail || 'email@exemplo.com'}</div>
+                  <div>🔑 <strong>Senha Inicial:</strong> <span className="text-amber-400 font-bold">{formData.adminPassword || 'Acert@2026'}</span></div>
+                  <div>🎟️ <strong>Código Convite Equipe:</strong> <span className="text-blue-400 font-bold">{formData.inviteCode || 'IMO-ACERT-2026'}</span></div>
+                  <div>🚀 <strong>Inicia no Módulo:</strong> {formData.initialModule || 'kanban'}</div>
+                  <div>🌐 <strong>Site Escolhido:</strong> {formData.chosenSiteTemplate || 'URBAN_FLOW'}</div>
                 </div>
               </div>
             </div>
@@ -669,7 +993,11 @@ export const TenantModal: React.FC<TenantModalProps> = ({
               {activeTab !== 'WHITE_LABEL' ? (
                 <button
                   type="button"
-                  onClick={() => setActiveTab(activeTab === 'DADOS' ? 'PLANO_MODULOS' : 'WHITE_LABEL')}
+                  onClick={() => {
+                    if (activeTab === 'DADOS') setActiveTab('ACESSO_CONVITE');
+                    else if (activeTab === 'ACESSO_CONVITE') setActiveTab('PLANO_MODULOS');
+                    else if (activeTab === 'PLANO_MODULOS') setActiveTab('WHITE_LABEL');
+                  }}
                   className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors"
                 >
                   Próximo Passo →

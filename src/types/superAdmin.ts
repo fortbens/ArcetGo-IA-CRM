@@ -70,6 +70,13 @@ export interface TenantAgency {
   trialEndsAt?: string;
   nextBillingDate: string;
   paymentMethod: 'PIX' | 'BOLETO' | 'CARTAO_CREDITO';
+  // Credenciais de Entrada, Convite e Início de Trabalho Real
+  adminPassword?: string;
+  inviteCode?: string;
+  initialModule?: string; // ex: 'kanban', 'imoveis', 'roleta', 'sites_modelos', 'financial_erp', 'executive_dashboard'
+  chosenSiteTemplate?: string; // ex: 'EXCLUSIVE_HIGH_END', 'URBAN_FLOW', 'FAST_RENT', 'HERITAGE_TRUST'
+  chosenSiteTitle?: string;
+  siteCustomUrl?: string;
 }
 
 export type PlatformUserStatus = 'ATIVO' | 'BLOQUEADO' | 'PENDENTE';
@@ -126,6 +133,8 @@ export interface PlatformUserAccount {
   address?: UserAddress;
   emergencyContact?: UserEmergencyContact;
   status: PlatformUserStatus;
+  password?: string;
+  inviteCode?: string;
   customPermissions?: Record<string, boolean>;
   lastLoginAt: string;
   createdAt: string;

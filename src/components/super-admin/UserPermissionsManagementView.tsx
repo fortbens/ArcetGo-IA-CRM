@@ -13,6 +13,7 @@ import {
   RotateCcw,
   Sliders,
   Eye,
+  EyeOff,
   Edit2,
   Trash2,
   Download,
@@ -29,27 +30,47 @@ import {
   Shield,
   Layers,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  UserPlus,
+  Send,
+  Copy,
+  Mail,
+  Phone
 } from 'lucide-react';
 import { UserProfile, UserRole } from '../../types/crm';
 import { CURRENT_USER_PROFILES } from '../../data/mockData';
 import { DEFAULT_ROLE_PERMISSIONS, UserModulePermissions } from './TeamPermissionsModal';
+import { TenantAgency, PlatformUserAccount } from '../../types/superAdmin';
+import { UserAdminModal } from './UserAdminModal';
+import { PLATFORM_HIERARCHIES, PERMISSION_DEFINITIONS } from '../../data/mockSuperAdmin';
 
 interface UserPermissionsManagementViewProps {
   currentUser?: UserProfile;
   onNavigateToTab?: (tabId: string) => void;
   onSimulateRole?: (role: UserRole) => void;
+  tenants?: TenantAgency[];
+  platformUsers?: PlatformUserAccount[];
+  onSaveUser?: (user: Partial<PlatformUserAccount>) => void;
+  onDeleteUser?: (userId: string) => void;
 }
 
 export const UserPermissionsManagementView: React.FC<UserPermissionsManagementViewProps> = ({
   currentUser,
   onNavigateToTab,
-  onSimulateRole
+  onSimulateRole,
+  tenants = [],
+  platformUsers = [],
+  onSaveUser,
+  onDeleteUser
 }) => {
-  const [activeMode, setActiveMode] = useState<'CARGOS' | 'USUARIOS'>('CARGOS');
+  const [activeMode, setActiveMode] = useState<'CARGOS' | 'USUARIOS' | 'EQUIPE'>('EQUIPE');
   const [selectedRole, setSelectedRole] = useState<UserRole>('BROKER');
   const [selectedUserId, setSelectedUserId] = useState<string>(CURRENT_USER_PROFILES[2]?.id || 'usr_corretor_juliana');
   const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<PlatformUserAccount | null>(null);
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   
   // Custom permissions per user or role
   const [rolePermissions, setRolePermissions] = useState<Record<UserRole, UserModulePermissions>>(() => ({
@@ -134,6 +155,74 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
     setTimeout(() => setSavedToast(false), 3000);
   };
 
+  const agencyUsers = useMemo(() => {
+    let baseUsers: PlatformUserAccount[] = platformUsers && platformUsers.length > 0 ? [...platformUsers] : [];
+    
+    // Garantir que todos os gestores principais cadastrados nas imobiliárias estejam na lista
+    tenants.forEach(t => {
+      if (t.ownerEmail && !baseUsers.some(u => u.email.toLowerCase() === t.ownerEmail.toLowerCase())) {
+        baseUsers.push({
+          id: `usr_${t.id}_admin`,
+          name: t.ownerName,
+          email: t.ownerEmail,
+          phone: t.ownerPhone,
+          role: 'MASTER_ADMIN',
+          tenantId: t.id,
+          tenantName: t.tradeName,
+          avatar: t.logoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+          status: t.status === 'SUSPENDED' ? 'BLOQUEADO' : 'ATIVO',
+          password: t.adminPassword || 'Acert@2026',
+          inviteCode: t.inviteCode || 'IMO-2026',
+          department: 'Diretoria Executiva',
+          createdAt: t.createdAt || '2026-01-01',
+          lastLoginAt: 'Hoje'
+        });
+      }
+    });
+
+    if (baseUsers.length === 0) {
+      baseUsers = CURRENT_USER_PROFILES.map(p => ({
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        phone: p.phone,
+        role: p.role,
+        tenantId: p.tenantId,
+        tenantName: p.tenantName,
+        avatar: p.avatar,
+        creci: p.creci,
+        status: p.active ? 'ATIVO' : 'INATIVO',
+        password: 'Acert@2026',
+        inviteCode: 'IMO-2026'
+      } as PlatformUserAccount));
+    }
+
+    if (!currentUser?.tenantId || currentUser.tenantId === 'GLOBAL' || currentUser.role === 'SUPER_ADMIN') {
+      return baseUsers;
+    }
+    const forTenant = baseUsers.filter(u => u.tenantId === currentUser.tenantId);
+    return forTenant.length > 0 ? forTenant : baseUsers;
+  }, [platformUsers, currentUser, tenants]);
+
+  const handleCopyUserInvite = (user: PlatformUserAccount) => {
+    const tenant = tenants.find(t => t.id === user.tenantId) || tenants[0];
+    const text = `👋 *BEM-VINDO À EQUIPE - ${tenant?.tradeName || user.tenantName || 'ACERTGO'}*
+--------------------------------------------------
+*Colaborador:* ${user.name}
+*Função / Cargo:* ${user.role}
+*E-mail de Login:* ${user.email}
+*Senha de Acesso:* ${user.password || 'Acert@2026'}
+*Código de Convite:* ${user.inviteCode || tenant?.inviteCode || 'IMO-2026'}
+*Imobiliária:* ${tenant?.tradeName || user.tenantName}
+*Endereço do Sistema:* https://${tenant?.subdomain || 'matriz.acertgo.com.br'}
+--------------------------------------------------
+👉 Entre no sistema com seu e-mail e senha para começar o trabalho!`;
+
+    navigator.clipboard.writeText(text);
+    setCopyFeedback(`Ficha de ${user.name} copiada!`);
+    setTimeout(() => setCopyFeedback(null), 3000);
+  };
+
   const filteredUsers = useMemo(() => {
     if (!userSearchTerm) return CURRENT_USER_PROFILES;
     const term = userSearchTerm.toLowerCase();
@@ -141,6 +230,14 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
       u => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term) || u.role.toLowerCase().includes(term)
     );
   }, [userSearchTerm]);
+
+  const filteredAgencyUsers = useMemo(() => {
+    if (!userSearchTerm) return agencyUsers;
+    const term = userSearchTerm.toLowerCase();
+    return agencyUsers.filter(
+      u => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term) || u.role.toLowerCase().includes(term)
+    );
+  }, [agencyUsers, userSearchTerm]);
 
   return (
     <div className="space-y-6 pb-20 max-w-7xl mx-auto">
@@ -152,6 +249,13 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
             <div className="font-bold text-sm">Permissões Atualizadas com Sucesso!</div>
             <div className="text-xs text-emerald-100">Políticas de segurança aplicadas no sistema.</div>
           </div>
+        </div>
+      )}
+
+      {copyFeedback && (
+        <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 border border-slate-700">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+          <span className="text-xs font-bold">{copyFeedback}</span>
         </div>
       )}
 
@@ -168,19 +272,31 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
                 CONTROLE DE ACESSO & PERFIS
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                SEGURANÇA & LGPD BLINDADA
+                INÍCIO DE TRABALHO REAL
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Matriz de Permissões & Parâmetros de Usuários
+              Gestão de Equipe, Usuários & Permissões
             </h1>
             <p className="text-sm text-slate-300">
-              Parametrize de forma granular as permissões de cada perfil ou colaborador para <strong>Ver, Alterar, Excluir, Exportar e Acessar Custódia de Documentos</strong> confidenciais.
+              Cadastre corretores e gerentes da sua imobiliária, gere <strong>senhas iniciais de acesso</strong>, compartilhe convites de equipe e controle permissões granulares.
             </p>
           </div>
 
           {/* Quick Actions */}
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedUserForEdit(null);
+                setIsUserModalOpen(true);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-500/25 transition-all active:scale-95 cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Cadastrar Novo Usuário / Corretor</span>
+            </button>
+
             {onNavigateToTab && (
               <button
                 onClick={() => onNavigateToTab('agency_governance')}
@@ -199,17 +315,10 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
             </button>
             <button
               onClick={handleSave}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2 transition-all active:scale-95"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition-all active:scale-95"
             >
               <Save className="w-4 h-4" />
               Salvar Permissões
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-colors"
-              title="Imprimir Matriz de Acessos"
-            >
-              <Printer className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -217,6 +326,17 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
         {/* Mode Selector Tabs */}
         <div className="mt-6 pt-5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 bg-slate-950/60 p-1 rounded-2xl border border-slate-800">
+            <button
+              onClick={() => setActiveMode('EQUIPE')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                activeMode === 'EQUIPE'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              1. Equipe & Usuários da Imobiliária ({agencyUsers.length})
+            </button>
             <button
               onClick={() => setActiveMode('CARGOS')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
@@ -226,7 +346,7 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
               }`}
             >
               <Shield className="w-3.5 h-3.5" />
-              1. Matriz por Cargo (Perfis Padrão)
+              2. Matriz por Cargo (Perfis Padrão)
             </button>
             <button
               onClick={() => setActiveMode('USUARIOS')}
@@ -236,22 +356,182 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Users className="w-3.5 h-3.5" />
-              2. Permissões Granulares por Colaborador
+              <Sliders className="w-3.5 h-3.5" />
+              3. Permissões Granulares por Colaborador
             </button>
           </div>
 
           <div className="text-xs text-slate-400 flex items-center gap-2">
-            <span>Perfil Ativo:</span>
+            <span>Imobiliária:</span>
             <span className="font-bold text-white px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700">
-              {currentUser?.name} ({currentUser?.role})
+              {currentUser?.tenantName || 'Matriz Jardins'}
             </span>
           </div>
         </div>
       </div>
 
+      {/* SUB-TAB: EQUIPE & USUÁRIOS DA IMOBILIÁRIA */}
+      {activeMode === 'EQUIPE' && (
+        <div className="space-y-4">
+          {/* Header & Search */}
+          <div className="bg-white p-4 rounded-2xl shadow-xs border border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              <input
+                type="text"
+                value={userSearchTerm}
+                onChange={(e) => setUserSearchTerm(e.target.value)}
+                placeholder="Buscar colaboradores por nome, e-mail de login ou cargo..."
+                className="w-full text-xs pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-slate-50/50"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedUserForEdit(null);
+                setIsUserModalOpen(true);
+              }}
+              className="px-4 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 shrink-0"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Cadastrar Novo Usuário</span>
+            </button>
+          </div>
+
+          {/* Users Table */}
+          <div className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="py-3.5 px-4">Colaborador / E-mail de Login</th>
+                    <th className="py-3.5 px-4">Cargo & CRECI</th>
+                    <th className="py-3.5 px-4">Senha de Acesso</th>
+                    <th className="py-3.5 px-4">Convite da Equipe</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-xs">
+                  {filteredAgencyUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-slate-400">
+                        Nenhum colaborador encontrado para a busca informada.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredAgencyUsers.map((user) => {
+                      const isPwdVisible = !!visiblePasswords[user.id];
+                      return (
+                        <tr key={user.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-3">
+                              {user.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="w-9 h-9 rounded-full object-cover ring-1 ring-slate-200" />
+                              ) : (
+                                <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                                  {user.name.charAt(0)}
+                                </div>
+                              )}
+                              <div>
+                                <div className="font-bold text-slate-900">{user.name}</div>
+                                <div className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
+                                  <Mail className="w-3 h-3 text-slate-400" />
+                                  <span>{user.email}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <div className="font-semibold text-slate-800">{user.role}</div>
+                            <div className="text-[11px] text-slate-500">
+                              {user.creci ? `CRECI ${user.creci}` : (user.department || 'Vendas')}
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1.5 font-mono text-xs">
+                              <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                                {isPwdVisible ? (user.password || 'Acert@2026') : '••••••••'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setVisiblePasswords(prev => ({ ...prev, [user.id]: !prev[user.id] }))}
+                                className="p-1 text-slate-400 hover:text-slate-600"
+                                title={isPwdVisible ? 'Ocultar senha' : 'Exibir senha'}
+                              >
+                                {isPwdVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <span className="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                              {user.inviteCode || 'IMO-2026'}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              user.status === 'ATIVO' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'
+                            }`}>
+                              <CheckCircle2 className="w-3 h-3" />
+                              {user.status || 'ATIVO'}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleCopyUserInvite(user)}
+                                className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                title="Copiar Ficha de Convite (WhatsApp)"
+                              >
+                                <Send className="w-4 h-4 text-emerald-600" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedUserForEdit(user);
+                                  setIsUserModalOpen(true);
+                                }}
+                                className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Editar Usuário / Senha"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              {onDeleteUser && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (confirm(`Deseja remover o usuário "${user.name}"?`)) {
+                                      onDeleteUser(user.id);
+                                    }
+                                  }}
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                  title="Excluir Usuário"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Target Selector Bar */}
-      {activeMode === 'CARGOS' ? (
+      {activeMode === 'CARGOS' && (
         /* Role Selection Cards */
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {(
@@ -293,7 +573,9 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
             );
           })}
         </div>
-      ) : (
+      )}
+
+      {activeMode === 'USUARIOS' && (
         /* User Selection Strip with Search */
         <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -727,6 +1009,52 @@ export const UserPermissionsManagementView: React.FC<UserPermissionsManagementVi
           </div>
         </div>
       </div>
+
+      {/* Modal de Cadastro & Edição de Usuário / Corretor da Imobiliária */}
+      <UserAdminModal
+        isOpen={isUserModalOpen}
+        onClose={() => {
+          setIsUserModalOpen(false);
+          setSelectedUserForEdit(null);
+        }}
+        onSave={(savedUser) => {
+          if (onSaveUser) {
+            onSaveUser({
+              ...savedUser,
+              tenantId: savedUser.tenantId || currentUser?.tenantId || (tenants[0]?.id || 'tenant_matriz_sp'),
+              tenantName: savedUser.tenantName || currentUser?.tenantName || (tenants[0]?.tradeName || 'AcertGo')
+            });
+          }
+          setIsUserModalOpen(false);
+          setSelectedUserForEdit(null);
+          showToast();
+        }}
+        userToEdit={selectedUserForEdit}
+        tenants={tenants.length > 0 ? tenants : [{
+          id: currentUser?.tenantId || 'tenant_matriz_sp',
+          name: currentUser?.tenantName || 'AcertGo',
+          tradeName: currentUser?.tenantName || 'AcertGo',
+          cnpj: '',
+          ownerName: currentUser?.name || 'Diretor',
+          ownerEmail: currentUser?.email || 'diretor@imobiliaria.com.br',
+          ownerPhone: '(11) 99999-9999',
+          city: 'São Paulo',
+          state: 'SP',
+          planId: 'plan_pro',
+          planName: 'Plano Pro',
+          billingCycle: 'MENSAL',
+          status: 'ACTIVE',
+          activeModules: ['crm_roleta', 'kanban_funnel', 'imoveis_portais'],
+          subdomain: 'matriz',
+          monthlyBilling: 990,
+          stats: { usersCount: 1, propertiesCount: 0, activeLeadsCount: 0, monthlyDealsVolume: 0 },
+          createdAt: '2026-01-01',
+          nextBillingDate: '2026-12-31',
+          paymentMethod: 'PIX'
+        } as TenantAgency]}
+        hierarchies={PLATFORM_HIERARCHIES}
+        permissions={PERMISSION_DEFINITIONS}
+      />
     </div>
   );
 };

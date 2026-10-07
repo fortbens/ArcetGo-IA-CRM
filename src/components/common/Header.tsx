@@ -71,6 +71,10 @@ interface HeaderProps {
   canGoForward?: boolean;
   nextStepLabel?: string;
   currentStepLabel?: string;
+  onReturnToSuperAdmin?: () => void;
+  isImpersonatingTenant?: boolean;
+  principalManagerName?: string;
+  principalManagerEmail?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -108,7 +112,11 @@ export const Header: React.FC<HeaderProps> = ({
   onGoForward,
   canGoForward = false,
   nextStepLabel,
-  currentStepLabel
+  currentStepLabel,
+  onReturnToSuperAdmin,
+  isImpersonatingTenant = false,
+  principalManagerName,
+  principalManagerEmail
 }) => {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showTenantDropdown, setShowTenantDropdown] = useState(false);
@@ -264,55 +272,76 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Tenant Switcher (Dropdown) */}
-        <div className="relative hidden md:block">
-          <button
-            onClick={() => {
-              setShowTenantDropdown(!showTenantDropdown);
-              setShowRoleDropdown(false);
-              setShowShortcutsMenu(false);
-            }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors"
-          >
-            <Building2 className="w-3.5 h-3.5 shrink-0" style={{ color: primaryColor }} />
-            <span className="truncate max-w-[110px] lg:max-w-[170px]">{currentTenant.name}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          </button>
+        {/* Tenant Switcher / Display */}
+        {currentUser.role === 'SUPER_ADMIN' ? (
+          <div className="relative hidden md:block">
+            <button
+              onClick={() => {
+                setShowTenantDropdown(!showTenantDropdown);
+                setShowRoleDropdown(false);
+                setShowShortcutsMenu(false);
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+              title="Alternar Instância da Imobiliária (Acesso Super Admin)"
+            >
+              <Building2 className="w-3.5 h-3.5 shrink-0" style={{ color: primaryColor }} />
+              <span className="truncate max-w-[110px] lg:max-w-[170px]">{currentTenant.name}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            </button>
 
-          {showTenantDropdown && (
-            <div className="absolute left-0 mt-1.5 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-1.5 flex items-center justify-between border-b border-slate-100 mb-1">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Alternar Filial / Tenant
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowTenantDropdown(false)}
-                  className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                  title="Fechar"
-                  aria-label="Fechar"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+            {showTenantDropdown && (
+              <div className="absolute left-0 mt-1.5 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-1.5 flex items-center justify-between border-b border-slate-100 mb-1">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Instâncias das Imobiliárias
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowTenantDropdown(false)}
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                    title="Fechar"
+                    aria-label="Fechar"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {tenants.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      onSelectTenant(t.id);
+                      setShowTenantDropdown(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs flex flex-col transition-colors ${
+                      selectedTenantId === t.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>{t.name}</span>
+                    <span className="text-[10px] text-slate-400">{t.city}</span>
+                  </button>
+                ))}
               </div>
-              {tenants.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    onSelectTenant(t.id);
-                    setShowTenantDropdown(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-xs flex flex-col transition-colors ${
-                    selectedTenantId === t.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  <span>{t.name}</span>
-                  <span className="text-[10px] text-slate-400">{t.city}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg">
+            <Building2 className="w-3.5 h-3.5 shrink-0" style={{ color: primaryColor }} />
+            <span className="truncate max-w-[120px] lg:max-w-[200px]">{currentTenant.name}</span>
+          </div>
+        )}
+
+        {/* Retorno à Plataforma Geral (Super Admin) */}
+        {onReturnToSuperAdmin && (
+          <button
+            type="button"
+            onClick={onReturnToSuperAdmin}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-xs transition-all active:scale-95 cursor-pointer"
+            title="Voltar à Plataforma Geral SaaS (Super Admin)"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-slate-950" />
+            <span className="hidden sm:inline">Voltar ao Super Admin</span>
+          </button>
+        )}
       </div>
 
       {/* Zone 2: Actions, Brand Customizer & Profile */}
@@ -689,53 +718,111 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {showRoleDropdown && (
-            <div className="absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 pb-2 mb-1 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-slate-900">Simulador de Perfis</p>
-                  <p className="text-[11px] text-slate-500">
-                    Alterne a perspectiva de visualização:
-                  </p>
+            <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2.5 z-50 animate-in fade-in zoom-in-95 duration-100">
+              {/* Informações da Sessão Ativa */}
+              <div className="px-3.5 pb-2.5 mb-1.5 border-b border-slate-100">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Sessão em Operação Real
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowRoleDropdown(false)}
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowRoleDropdown(false)}
-                  className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                  title="Fechar"
-                  aria-label="Fechar"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src={currentUser.avatar}
+                    alt={currentUser.name}
+                    className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-slate-200"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{currentUser.email}</p>
+                    <span className={`text-[9px] inline-block font-semibold ${roleInfo.bg} px-1.5 py-0.2 rounded mt-0.5`}>
+                      {roleInfo.label}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1 text-[11px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Imobiliária:</span>
+                    <span className="font-semibold text-slate-800 truncate max-w-[170px]">{currentTenant.name}</span>
+                  </div>
+                  {principalManagerName && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Gestor Principal:</span>
+                      <span className="font-bold text-blue-700 truncate max-w-[160px]">
+                        {principalManagerName}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="max-h-64 overflow-y-auto">
-                {CURRENT_USER_PROFILES.map((usr) => {
-                  const b = getRoleBadge(usr.role);
-                  return (
-                    <button
-                      key={usr.id}
-                      onClick={() => {
-                        onSelectUser(usr);
-                        setShowRoleDropdown(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-xs flex items-center gap-2.5 transition-colors ${
-                        currentUser.id === usr.id ? 'bg-blue-50/80 font-medium' : 'hover:bg-slate-50 text-slate-700'
-                      }`}
-                    >
-                      <img
-                        src={usr.avatar}
-                        alt={usr.name}
-                        className="w-7 h-7 rounded-full object-cover shrink-0"
-                      />
-                      <div className="flex flex-col flex-1 min-w-0">
-                        <span className="text-slate-900 font-semibold truncate">{usr.name}</span>
-                        <span className={`text-[10px] inline-block font-medium ${b.bg} px-1.5 py-0.2 rounded mt-0.5`}>
-                          {b.label}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+
+              {/* Ação rápida para retornar à Plataforma Geral se for Super Admin inspecionando */}
+              {onReturnToSuperAdmin && (
+                <div className="px-2.5 pb-2 border-b border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRoleDropdown(false);
+                      onReturnToSuperAdmin();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-black text-slate-950 bg-amber-400 hover:bg-amber-500 transition-colors flex items-center justify-between shadow-xs cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-slate-950" />
+                      Retornar ao Super Admin
+                    </span>
+                    <span className="text-[10px] bg-slate-950/20 px-1.5 py-0.5 rounded font-bold">
+                      Plataforma Geral
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Simulador de Perfis (Visível apenas para SUPER_ADMIN) */}
+              {currentUser.role === 'SUPER_ADMIN' && (
+                <div className="px-3 py-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    Alternar Perspectiva (Super Admin)
+                  </p>
+                  <div className="max-h-48 overflow-y-auto space-y-0.5">
+                    {CURRENT_USER_PROFILES.map((usr) => {
+                      const b = getRoleBadge(usr.role);
+                      return (
+                        <button
+                          key={usr.id}
+                          onClick={() => {
+                            onSelectUser(usr);
+                            setShowRoleDropdown(false);
+                          }}
+                          className={`w-full text-left px-2.5 py-1.5 text-xs flex items-center gap-2 rounded-lg transition-colors ${
+                            currentUser.id === usr.id ? 'bg-blue-50/80 font-medium' : 'hover:bg-slate-50 text-slate-700'
+                          }`}
+                        >
+                          <img
+                            src={usr.avatar}
+                            alt={usr.name}
+                            className="w-6 h-6 rounded-full object-cover shrink-0"
+                          />
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <span className="text-slate-900 font-semibold truncate text-[11px]">{usr.name}</span>
+                            <span className={`text-[9px] inline-block font-medium ${b.bg} px-1 rounded`}>
+                              {b.label}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Agency Governance Rules Shortcut */}
               {onOpenGovernanceRules && (

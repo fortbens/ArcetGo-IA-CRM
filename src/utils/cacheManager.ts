@@ -4,8 +4,8 @@
  * force sempre a versão mais atualizada e não deixe credenciais salvas em disco.
  */
 
-export const APP_VERSION = '2026.10.02-r2';
-export const APP_BUILD_TIMESTAMP = '2026-10-02T13:00:00Z';
+export const APP_VERSION = '2026.10.07-v1';
+export const APP_BUILD_TIMESTAMP = '2026-10-07T03:00:00Z';
 
 /**
  * Limpa todos os caches do navegador (CacheStorage, Service Workers e dados temporários de sessão).

@@ -11,7 +11,13 @@ import {
   Camera, 
   Upload, 
   Image as ImageIcon,
-  Key
+  Key,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Send,
+  Copy,
+  Sparkles
 } from 'lucide-react';
 import { 
   PlatformUserAccount, 
@@ -82,17 +88,48 @@ export const UserAdminModal: React.FC<UserAdminModalProps> = ({
       notes: ''
     },
     status: 'ATIVO',
-    customPermissions: {}
+    customPermissions: {},
+    password: ''
   });
 
   const [activeTab, setActiveTab] = useState<'DADOS' | 'FOTO' | 'ENDERECO' | 'EMERGENCIA' | 'PERMISSOES'>('DADOS');
   const [formError, setFormError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const generateStrongPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let pass = 'Imob#';
+    for (let i = 0; i < 4; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+  };
+
+  const handleCopyUserCard = () => {
+    const tenant = tenants.find(t => t.id === formData.tenantId) || tenants[0];
+    const text = `👋 *BEM-VINDO À EQUIPE - ${tenant?.tradeName || 'ACERTGO'}*
+--------------------------------------------------
+*Colaborador:* ${formData.name || 'Novo Usuário'}
+*Cargo / Função:* ${formData.role || 'Corretor'}
+*E-mail de Login:* ${formData.email || 'Não informado'}
+*Senha de Acesso:* ${formData.password || 'Acert@2026'}
+*Imobiliária:* ${tenant?.tradeName || 'AcertGo'}
+*Link de Acesso:* https://matriz.acertgo.com.br
+--------------------------------------------------
+👉 Entre no sistema com suas credenciais para começar a atender seus clientes!`;
+
+    navigator.clipboard.writeText(text);
+    setCopyFeedback('Convite copiado com sucesso!');
+    setTimeout(() => setCopyFeedback(null), 3000);
+  };
 
   useEffect(() => {
     if (userToEdit) {
       setFormData({
         ...userToEdit,
+        password: userToEdit.password || 'Acert@2026',
         address: userToEdit.address || {
           cep: '04538-133',
           street: 'Rua Joaquim Floriano',
@@ -111,6 +148,7 @@ export const UserAdminModal: React.FC<UserAdminModalProps> = ({
         }
       });
     } else {
+      const initialPass = generateStrongPassword();
       setFormData({
         name: '',
         email: '',
@@ -125,6 +163,7 @@ export const UserAdminModal: React.FC<UserAdminModalProps> = ({
         birthDate: '',
         admissionDate: '2026-09-01',
         department: 'Vendas',
+        password: initialPass,
         address: {
           cep: '04538-133',
           street: 'Rua Joaquim Floriano',
@@ -354,6 +393,54 @@ export const UserAdminModal: React.FC<UserAdminModalProps> = ({
                     placeholder="carlos@imobiliaria.com.br"
                     className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
+                </div>
+              </div>
+
+              {/* Senha Inicial de Acesso do Usuário */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-slate-800 font-bold flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-amber-500" />
+                    Senha de Acesso do Usuário *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, password: generateStrongPassword() }))}
+                    className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Gerar Nova Senha
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={formData.password || ''}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder="Digite a senha de login..."
+                    className="w-full px-3 pr-10 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60">
+                  <span className="text-[10px] text-slate-500">
+                    O usuário usará este e-mail e senha para entrar.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopyUserCard}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-semibold flex items-center gap-1 shadow-xs transition-colors"
+                  >
+                    <Send className="w-3 h-3" />
+                    {copyFeedback || 'Copiar Convite (WhatsApp)'}
+                  </button>
                 </div>
               </div>
 

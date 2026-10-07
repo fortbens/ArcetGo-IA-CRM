@@ -50,6 +50,8 @@ import { HumanResourcesView } from './components/hr/HumanResourcesView';
 import { ExecutiveDirectorDashboardView } from './components/dashboard/ExecutiveDirectorDashboardView';
 import { NotificationCenterView } from './components/notifications/NotificationCenterView';
 import { GlobalAnnouncementBanner } from './components/notifications/GlobalAnnouncementBanner';
+import { AgencyWorkActivationBanner } from './components/common/AgencyWorkActivationBanner';
+import { InstanceTransitionOverlay } from './components/common/InstanceTransitionOverlay';
 import { PushNotificationToaster } from './components/notifications/PushNotificationToaster';
 import { DemoSandboxBanner } from './components/demo/DemoSandboxBanner';
 import { DemoSandboxModal } from './components/demo/DemoSandboxModal';
@@ -117,6 +119,7 @@ import { SalesPageLinkModal } from './components/modals/SalesPageLinkModal';
 
 import { 
   UserProfile, 
+  UserRole,
   TenantId, 
   Lead, 
   LeadSource,
@@ -202,7 +205,24 @@ export default function App() {
     } catch {}
     return CURRENT_USER_PROFILES[0];
   });
+  const [superAdminOriginalUser, setSuperAdminOriginalUser] = useState<UserProfile | null>(() => {
+    try {
+      const raw = sessionStorage.getItem('acertgo_super_admin_session');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
   const [currentTenantId, setCurrentTenantId] = useState<TenantId>('tenant_matriz_sp');
+  const [instanceTransition, setInstanceTransition] = useState<{
+    tenantName: string;
+    ownerName: string;
+    ownerEmail?: string;
+    city?: string;
+    state?: string;
+    initialModule?: string;
+    logoUrl?: string;
+  } | null>(null);
   const [currentTab, setCurrentTab] = useState<NavTabId>(() => {
     if (isTvRankingRouteUrl()) {
       return 'tv_ranking';
@@ -267,11 +287,13 @@ export default function App() {
 
   const handleLogout = async () => {
     setIsAuthenticated(false);
+    setSuperAdminOriginalUser(null);
     purgeStoredCredentials();
     await purgeAllBrowserCaches();
     try {
       sessionStorage.removeItem('acertgo_session_authenticated');
       sessionStorage.removeItem('acertgo_session_user');
+      sessionStorage.removeItem('acertgo_super_admin_session');
       if (auth) {
         await auth.signOut();
       }
@@ -281,9 +303,46 @@ export default function App() {
     showNavToast('Sessão encerrada com segurança. Caches locais do dispositivo limpos.');
   };
 
-  const handleLoginSuccess = async (user: UserProfile) => {
+  const handleLoginSuccess = async (user: UserProfile, targetModule?: string) => {
     setCurrentUser(user);
     setIsAuthenticated(true);
+    setSuperAdminOriginalUser(null);
+    try {
+      sessionStorage.removeItem('acertgo_super_admin_session');
+    } catch {}
+    if (user.tenantId && user.tenantId !== 'GLOBAL') {
+      setCurrentTenantId(user.tenantId);
+    }
+
+    if (user.role !== 'SUPER_ADMIN') {
+      // As imobiliárias entram no modo produção com todo o cadastro limpo pronto para a implantação
+      setSystemEnvironment('PRODUCTION');
+      localStorage.setItem('sistema_ambiente', 'PRODUCTION');
+      setLeads([]);
+      setProperties([]);
+      setOwners([]);
+      setContracts([]);
+      setCommissions([]);
+      setCcaProposals([]);
+      setQueues([]);
+      setDevelopment(null);
+
+      const targetTenant = tenants.find(t => t.id === user.tenantId) || tenants[0];
+      if (targetTenant) {
+        setInstanceTransition({
+          tenantName: targetTenant.tradeName,
+          ownerName: targetTenant.ownerName,
+          ownerEmail: targetTenant.ownerEmail,
+          city: targetTenant.city,
+          state: targetTenant.state,
+          initialModule: targetTenant.initialModule || 'kanban',
+          logoUrl: targetTenant.logoUrl
+        });
+      }
+    }
+
+    const initialTab = (targetModule || user.initialModule || (user.role === 'SUPER_ADMIN' ? 'super_admin' : 'kanban')) as NavTabId;
+    setCurrentTab(initialTab);
     try {
       sessionStorage.setItem('acertgo_session_authenticated', 'true');
       sessionStorage.setItem('acertgo_session_user', JSON.stringify(user));
@@ -292,6 +351,7 @@ export default function App() {
     }
     await purgeAllBrowserCaches();
     purgeStoredCredentials();
+    showNavToast(`Sessão iniciada como ${user.name} (${user.tenantName || 'Imobiliária'})`);
   };
 
   // Sales Page & CMS State (Sincronizado na Nuvem)
@@ -521,8 +581,11 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  // Environment Switch Handler: Alternar entre Produção Zerada e Testes Demonstrativos
+  // Environment Switch Handler: Exclusivo apenas ao Super Admin
   const handleToggleSystemEnvironment = (env: 'PRODUCTION' | 'TEST') => {
+    if (currentUser.role !== 'SUPER_ADMIN') {
+      return;
+    }
     setSystemEnvironment(env);
     localStorage.setItem('sistema_ambiente', env);
     if (env === 'PRODUCTION') {
@@ -1183,6 +1246,7 @@ export default function App() {
   const [platformUsers, setPlatformUsers] = useState<PlatformUserAccount[]>(getInitialPlatformUsers);
   const [systemConfig, setSystemConfig] = useState<SystemWhiteLabelConfig>(getInitialSystemConfig);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(INITIAL_AUDIT_LOGS);
+  const activeTenant = tenants.find(t => t.id === currentTenantId) || tenants[0];
 
   // Escuta alterações de White-Label em tempo real
   useEffect(() => {
@@ -1196,8 +1260,34 @@ export default function App() {
   const handleSaveTenant = async (tenantData: Partial<TenantAgency>) => {
     let updatedTenants: TenantAgency[];
     const isEdit = tenantData.id && tenants.some(t => t.id === tenantData.id);
+    let targetTenantId: string;
+    let finalOwnerName: string;
+    let finalOwnerEmail: string;
+    let finalOwnerPhone: string;
+    let finalPassword: string;
+    let finalInviteCode: string;
+    let finalTradeName: string;
+
     if (isEdit) {
-      updatedTenants = tenants.map(t => t.id === tenantData.id ? { ...t, ...tenantData } as TenantAgency : t);
+      targetTenantId = tenantData.id!;
+      const existingTenant = tenants.find(t => t.id === tenantData.id)!;
+      finalOwnerName = tenantData.ownerName || existingTenant.ownerName;
+      finalOwnerEmail = tenantData.ownerEmail || existingTenant.ownerEmail;
+      finalOwnerPhone = tenantData.ownerPhone || existingTenant.ownerPhone;
+      finalPassword = tenantData.adminPassword || existingTenant.adminPassword || 'Acert@2026';
+      finalInviteCode = tenantData.inviteCode || existingTenant.inviteCode || `IMO-${(tenantData.tradeName || existingTenant.tradeName).toUpperCase().slice(0, 6)}-2026`;
+      finalTradeName = tenantData.tradeName || existingTenant.tradeName;
+
+      updatedTenants = tenants.map(t => t.id === tenantData.id ? { 
+        ...t, 
+        ...tenantData,
+        adminPassword: finalPassword,
+        inviteCode: finalInviteCode,
+        initialModule: tenantData.initialModule || t.initialModule || 'kanban',
+        chosenSiteTemplate: tenantData.chosenSiteTemplate || t.chosenSiteTemplate || 'URBAN_FLOW',
+        chosenSiteTitle: tenantData.chosenSiteTitle || t.chosenSiteTitle || ''
+      } as TenantAgency : t);
+
       const log: AuditLogItem = {
         id: `log_${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -1207,36 +1297,49 @@ export default function App() {
         userName: currentUser.name,
         userRole: currentUser.role,
         tenantId: tenantData.id,
-        tenantName: tenantData.tradeName || tenantData.name || 'Imobiliária',
+        tenantName: finalTradeName,
         ipAddress: '177.136.240.12',
         severity: 'INFO',
-        details: `Atualizou os dados/plano da imobiliária ${tenantData.tradeName || tenantData.name}.`
+        details: `Atualizou os dados/credenciais da imobiliária ${finalTradeName}.`
       };
       setAuditLogs(prev => [log, ...prev]);
     } else {
+      targetTenantId = `tenant_${Date.now()}` as TenantId;
+      finalOwnerName = tenantData.ownerName || 'Administrador';
+      finalOwnerEmail = tenantData.ownerEmail || 'admin@imobiliaria.com.br';
+      finalOwnerPhone = tenantData.ownerPhone || '(11) 99999-9999';
+      finalTradeName = tenantData.tradeName || tenantData.name || 'Nova Imobiliária';
+      finalPassword = tenantData.adminPassword || 'Acert@2026';
+      finalInviteCode = tenantData.inviteCode || `IMO-${finalTradeName.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)}-2026`;
+
       const newTenant: TenantAgency = {
-        id: `tenant_${Date.now()}` as TenantId,
+        id: targetTenantId,
         name: tenantData.name || 'Nova Imobiliária',
-        tradeName: tenantData.tradeName || tenantData.name || 'Nova Imobiliária',
+        tradeName: finalTradeName,
         cnpj: tenantData.cnpj || '00.000.000/0001-00',
         creciJ: tenantData.creciJ || '',
-        ownerName: tenantData.ownerName || 'Administrador',
-        ownerEmail: tenantData.ownerEmail || 'admin@imobiliaria.com.br',
-        ownerPhone: tenantData.ownerPhone || '(11) 99999-9999',
+        ownerName: finalOwnerName,
+        ownerEmail: finalOwnerEmail,
+        ownerPhone: finalOwnerPhone,
         city: tenantData.city || 'São Paulo',
         state: tenantData.state || 'SP',
         planId: tenantData.planId || saasPlans[0]?.id || 'plan_pro',
         planName: tenantData.planName || saasPlans[0]?.name || 'Plano Pro Imob',
         billingCycle: tenantData.billingCycle || 'MENSAL',
         status: tenantData.status || 'ACTIVE',
-        activeModules: tenantData.activeModules || ['crm', 'propostas', 'roleta'],
+        activeModules: tenantData.activeModules || ['crm_roleta', 'kanban_funnel', 'imoveis_portais'],
         subdomain: tenantData.subdomain || 'nova',
         logoUrl: tenantData.logoUrl || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=150',
         monthlyBilling: tenantData.monthlyBilling || 499,
         stats: tenantData.stats || { usersCount: 1, propertiesCount: 0, activeLeadsCount: 0, monthlyDealsVolume: 0 },
         createdAt: new Date().toISOString().split('T')[0],
         nextBillingDate: tenantData.nextBillingDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        paymentMethod: tenantData.paymentMethod || 'PIX'
+        paymentMethod: tenantData.paymentMethod || 'PIX',
+        adminPassword: finalPassword,
+        inviteCode: finalInviteCode,
+        initialModule: tenantData.initialModule || 'kanban',
+        chosenSiteTemplate: tenantData.chosenSiteTemplate || 'URBAN_FLOW',
+        chosenSiteTitle: tenantData.chosenSiteTitle || `${finalTradeName} · Imóveis & Oportunidades`
       };
       updatedTenants = [newTenant, ...tenants];
       const log: AuditLogItem = {
@@ -1251,12 +1354,42 @@ export default function App() {
         tenantName: newTenant.tradeName,
         ipAddress: '177.136.240.12',
         severity: 'INFO',
-        details: `Provisionou nova instância da imobiliária ${newTenant.tradeName} no plano ${newTenant.planName}.`
+        details: `Provisionou nova instância da imobiliária ${newTenant.tradeName} no plano ${newTenant.planName} com senha inicial e convite ativados.`
       };
       setAuditLogs(prev => [log, ...prev]);
     }
     setTenants(updatedTenants);
     await saveTenantsToCloud(updatedTenants);
+
+    // CRIAÇÃO E SINCRONIZAÇÃO AUTOMÁTICA DO USUÁRIO MASTER ADMIN DA IMOBILIÁRIA
+    if (finalOwnerEmail) {
+      const adminUser: PlatformUserAccount = {
+        id: `usr_${targetTenantId}_admin`,
+        name: finalOwnerName,
+        email: finalOwnerEmail,
+        phone: finalOwnerPhone,
+        role: 'MASTER_ADMIN',
+        tenantId: targetTenantId,
+        tenantName: finalTradeName,
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        status: 'ATIVO',
+        password: finalPassword,
+        inviteCode: finalInviteCode,
+        department: 'Diretoria Executiva',
+        createdAt: new Date().toISOString().split('T')[0],
+        lastLoginAt: 'Nunca acessou'
+      };
+
+      const existingUserIdx = platformUsers.findIndex(u => u.email.toLowerCase() === finalOwnerEmail.toLowerCase());
+      let nextUsers: PlatformUserAccount[];
+      if (existingUserIdx >= 0) {
+        nextUsers = platformUsers.map((u, i) => i === existingUserIdx ? { ...u, ...adminUser, id: u.id } : u);
+      } else {
+        nextUsers = [adminUser, ...platformUsers];
+      }
+      setPlatformUsers(nextUsers);
+      await savePlatformUsersToCloud(nextUsers);
+    }
   };
 
   const handleDeleteTenant = (tenantId: string) => {
@@ -1363,8 +1496,16 @@ export default function App() {
 
   const handleSavePlatformUser = async (userData: Partial<PlatformUserAccount>) => {
     let updatedUsers: PlatformUserAccount[];
+    const targetPassword = userData.password || 'Acert@2026';
+    const targetInviteCode = userData.inviteCode || '';
+
     if (userData.id && platformUsers.some(u => u.id === userData.id)) {
-      updatedUsers = platformUsers.map(u => u.id === userData.id ? { ...u, ...userData } as PlatformUserAccount : u);
+      updatedUsers = platformUsers.map(u => u.id === userData.id ? { 
+        ...u, 
+        ...userData,
+        password: userData.password || u.password || 'Acert@2026',
+        inviteCode: userData.inviteCode || u.inviteCode || ''
+      } as PlatformUserAccount : u);
     } else {
       const newUser: PlatformUserAccount = {
         id: `usr_${Date.now()}`,
@@ -1385,6 +1526,8 @@ export default function App() {
         emergencyContact: userData.emergencyContact,
         status: userData.status || 'ATIVO',
         customPermissions: userData.customPermissions,
+        password: targetPassword,
+        inviteCode: targetInviteCode,
         lastLoginAt: 'Nunca acessou',
         createdAt: new Date().toISOString().split('T')[0]
       };
@@ -1392,6 +1535,33 @@ export default function App() {
     }
     setPlatformUsers(updatedUsers);
     await savePlatformUsersToCloud(updatedUsers);
+
+    // Sincronizar em CURRENT_USER_PROFILES para troca imediata
+    if (userData.email) {
+      const targetUser = updatedUsers.find(u => u.email.toLowerCase() === userData.email?.toLowerCase());
+      if (targetUser) {
+        const convertedProfile: UserProfile = {
+          id: targetUser.id,
+          name: targetUser.name,
+          email: targetUser.email,
+          phone: targetUser.phone,
+          role: targetUser.role as UserRole,
+          avatar: targetUser.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+          creci: targetUser.creci || '',
+          tenantId: targetUser.tenantId,
+          tenantName: targetUser.tenantName,
+          active: targetUser.status === 'ATIVO',
+          scorePoints: 500,
+          initialModule: 'kanban'
+        };
+        const pIdx = CURRENT_USER_PROFILES.findIndex(p => p.email.toLowerCase() === targetUser.email.toLowerCase());
+        if (pIdx >= 0) {
+          CURRENT_USER_PROFILES[pIdx] = { ...CURRENT_USER_PROFILES[pIdx], ...convertedProfile };
+        } else {
+          CURRENT_USER_PROFILES.push(convertedProfile);
+        }
+      }
+    }
 
     if (userData.phone) {
       if (userData.email) {
@@ -1486,8 +1656,62 @@ export default function App() {
   const handleImpersonateTenant = (tenantId: string) => {
     const target = tenants.find(t => t.id === tenantId);
     if (target) {
+      if (currentUser.role === 'SUPER_ADMIN') {
+        setSuperAdminOriginalUser(currentUser);
+        try {
+          sessionStorage.setItem('acertgo_super_admin_session', JSON.stringify(currentUser));
+        } catch {}
+      }
       setCurrentTenantId(target.id as TenantId);
-      handleNavigateTab('kanban');
+
+      // Instância da imobiliária: o gestor principal é o cadastrado no módulo principal (MASTER_ADMIN)
+      const tenantUser: UserProfile = {
+        id: `usr_${target.id}_admin`,
+        name: target.ownerName,
+        email: target.ownerEmail,
+        phone: target.ownerPhone,
+        role: 'MASTER_ADMIN',
+        avatar: target.logoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        creci: target.creciJ || 'CRECI Jurídico',
+        tenantId: target.id,
+        tenantName: target.tradeName,
+        active: true,
+        scorePoints: 1000,
+        initialModule: target.initialModule || 'kanban',
+        chosenSiteTemplate: target.chosenSiteTemplate || 'URBAN_FLOW'
+      };
+      setCurrentUser(tenantUser);
+      try {
+        sessionStorage.setItem('acertgo_session_user', JSON.stringify(tenantUser));
+      } catch {}
+
+      const targetTab = (target.initialModule || 'kanban') as NavTabId;
+      handleNavigateTab(targetTab);
+      showNavToast(`Acessando instância "${target.tradeName}" · Gestor Principal: ${target.ownerName}`);
+
+      // Forçar ambiente de produção e cadastro limpo pronto para a implantação
+      setSystemEnvironment('PRODUCTION');
+      localStorage.setItem('sistema_ambiente', 'PRODUCTION');
+      setLeads([]);
+      setProperties([]);
+      setOwners([]);
+      setContracts([]);
+      setCommissions([]);
+      setCcaProposals([]);
+      setQueues([]);
+      setDevelopment(null);
+
+      // Disparar animação e sinalização elegante de transição de ambiente exclusivo
+      setInstanceTransition({
+        tenantName: target.tradeName,
+        ownerName: target.ownerName,
+        ownerEmail: target.ownerEmail,
+        city: target.city,
+        state: target.state,
+        initialModule: target.initialModule || 'kanban',
+        logoUrl: target.logoUrl
+      });
+
       const log: AuditLogItem = {
         id: `log_${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -1499,11 +1723,37 @@ export default function App() {
         tenantId: target.id,
         tenantName: target.tradeName,
         ipAddress: '177.136.240.12',
-        severity: 'WARNING',
-        details: `Super Admin acessou em modo de simulação a imobiliária ${target.tradeName}.`
+        severity: 'INFO',
+        details: `Super Admin acessou a instância da imobiliária ${target.tradeName} com o gestor principal ${target.ownerName} no módulo ${targetTab}.`
       };
       setAuditLogs(prev => [log, ...prev]);
     }
+  };
+
+  const handleReturnToSuperAdmin = () => {
+    const fallbackSuperAdmin: UserProfile = {
+      id: 'usr_super_admin',
+      name: 'Emerson Carneiro dos Santos',
+      email: 'diretorcarneiro@gmail.com',
+      phone: '(11) 99864-2424',
+      role: 'SUPER_ADMIN',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      creci: 'SaaS Master Key',
+      tenantId: 'tenant_matriz_sp',
+      tenantName: 'Plataforma Global AcertGo SaaS',
+      active: true,
+      scorePoints: 1200,
+      initialModule: 'super_admin'
+    };
+    const superAdmin = superAdminOriginalUser || CURRENT_USER_PROFILES.find(p => p.role === 'SUPER_ADMIN') || fallbackSuperAdmin;
+    setCurrentUser(superAdmin);
+    setSuperAdminOriginalUser(null);
+    try {
+      sessionStorage.removeItem('acertgo_super_admin_session');
+      sessionStorage.setItem('acertgo_session_user', JSON.stringify(superAdmin));
+    } catch {}
+    handleNavigateTab('super_admin');
+    showNavToast('Retornou à Plataforma Geral SaaS (Super Admin)');
   };
 
   // Property handlers
@@ -2079,6 +2329,8 @@ export default function App() {
     return (
       <LoginAuthView
         onLoginSuccess={handleLoginSuccess}
+        tenants={tenants}
+        platformUsers={platformUsers}
         agencyName={themeConfig.agencyName || themeConfig.platformName}
         logoUrl={themeConfig.loginLogoUrl || themeConfig.logoUrl}
         onOpenSalesPage={() => {
@@ -2130,7 +2382,21 @@ export default function App() {
         onOpenSuperAdmin={() => handleNavigateTab('super_admin')}
         onOpenGovernanceRules={() => handleNavigateTab('agency_governance')}
         onLogout={handleLogout}
-        onSelectTenant={setCurrentTenantId}
+        onSelectTenant={(tenantId) => {
+          setCurrentTenantId(tenantId);
+          const target = tenants.find(t => t.id === tenantId);
+          if (target) {
+            setInstanceTransition({
+              tenantName: target.tradeName,
+              ownerName: target.ownerName,
+              ownerEmail: target.ownerEmail,
+              city: target.city,
+              state: target.state,
+              initialModule: target.initialModule || 'kanban',
+              logoUrl: target.logoUrl
+            });
+          }
+        }}
         selectedTenantId={currentTenantId}
         onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
         themeConfig={themeConfig}
@@ -2168,6 +2434,10 @@ export default function App() {
             : undefined
         }
         currentStepLabel={getTabLabel(currentTab)}
+        onReturnToSuperAdmin={superAdminOriginalUser ? handleReturnToSuperAdmin : undefined}
+        isImpersonatingTenant={!!superAdminOriginalUser}
+        principalManagerName={activeTenant?.ownerName}
+        principalManagerEmail={activeTenant?.ownerEmail}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
@@ -2184,11 +2454,22 @@ export default function App() {
           onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
           unreadNotificationsCount={notifications.filter(n => !n.isRead).length}
           systemEnvironment={systemEnvironment}
-          onToggleSystemEnvironment={handleToggleSystemEnvironment}
+          onToggleSystemEnvironment={currentUser.role === 'SUPER_ADMIN' ? handleToggleSystemEnvironment : undefined}
         />
 
         {/* Column 2: Dynamic Center Workspace Canvas */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 bg-slate-100/90 pb-20 lg:pb-0">
+          <div key={currentTenantId + '_' + currentTab} className="instance-transition-enter min-h-full">
+            {/* Painel de Início de Trabalho Real da Imobiliária Ativa */}
+            {activeTenant && currentTab !== 'super_admin' && (
+            <AgencyWorkActivationBanner
+              tenant={activeTenant}
+              currentUser={currentUser}
+              onNavigateTab={(tab) => handleNavigateTab(tab as NavTabId)}
+              onOpenNewLead={() => setShowNewLeadModal(true)}
+              onReturnToSuperAdmin={superAdminOriginalUser ? handleReturnToSuperAdmin : undefined}
+            />
+          )}
           {currentTab === 'notifications_center' && (
             <NotificationCenterView
               notifications={notifications}
@@ -2377,6 +2658,8 @@ export default function App() {
           {currentTab === 'sites_modelos' && (
             <ModelSitesView
               properties={properties}
+              currentTenant={activeTenant}
+              onSaveTenant={handleSaveTenant}
               onOpenPropertyDetails={(property) => {
                 handleNavigateTab('imoveis');
               }}
@@ -2575,6 +2858,10 @@ export default function App() {
                   const found = CURRENT_USER_PROFILES.find(u => u.role === role);
                   if (found) setCurrentUser(found);
                 }}
+                tenants={tenants}
+                platformUsers={platformUsers}
+                onSaveUser={handleSavePlatformUser}
+                onDeleteUser={handleDeletePlatformUser}
               />
             </div>
           )}
@@ -2600,6 +2887,7 @@ export default function App() {
               onImportLeads={handleImportLeads}
             />
           )}
+          </div>
         </main>
 
         {/* Column 3: Right Inspector & Intelligence Rail */}
@@ -2870,6 +3158,20 @@ export default function App() {
         platformName={themeConfig.platformName}
         agencyName={themeConfig.agencyName}
       />
+
+      {/* Animação e Sinalização Elegante de Transição para Instância da Imobiliária */}
+      {instanceTransition && (
+        <InstanceTransitionOverlay
+          tenantName={instanceTransition.tenantName}
+          ownerName={instanceTransition.ownerName}
+          ownerEmail={instanceTransition.ownerEmail}
+          city={instanceTransition.city}
+          state={instanceTransition.state}
+          initialModule={instanceTransition.initialModule}
+          logoUrl={instanceTransition.logoUrl}
+          onDismiss={() => setInstanceTransition(null)}
+        />
+      )}
     </div>
   );
 }

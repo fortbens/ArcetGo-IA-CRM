@@ -297,7 +297,12 @@ export const INITIAL_TENANTS: TenantAgency[] = [
     },
     createdAt: '2024-01-15T10:00:00Z',
     nextBillingDate: '2026-10-15',
-    paymentMethod: 'PIX'
+    paymentMethod: 'PIX',
+    adminPassword: 'Acert@2026',
+    inviteCode: 'MATRIZ-2026',
+    initialModule: 'kanban',
+    chosenSiteTemplate: 'URBAN_FLOW',
+    chosenSiteTitle: 'AcertGo Matriz Jardins · Imóveis Exclusivos'
   },
   {
     id: 'tenant_alphaville',
@@ -343,7 +348,12 @@ export const INITIAL_TENANTS: TenantAgency[] = [
     },
     createdAt: '2024-06-10T14:30:00Z',
     nextBillingDate: '2026-10-10',
-    paymentMethod: 'CARTAO_CREDITO'
+    paymentMethod: 'CARTAO_CREDITO',
+    adminPassword: 'Alpha@2026',
+    inviteCode: 'ALPHA-2026',
+    initialModule: 'imoveis',
+    chosenSiteTemplate: 'EXCLUSIVE_HIGH_END',
+    chosenSiteTitle: 'AcertGo Alphaville & Tamboré · Mansões & Condomínios'
   },
   {
     id: 'tenant_barra',
@@ -387,7 +397,12 @@ export const INITIAL_TENANTS: TenantAgency[] = [
     },
     createdAt: '2024-11-01T09:15:00Z',
     nextBillingDate: '2026-11-01',
-    paymentMethod: 'BOLETO'
+    paymentMethod: 'BOLETO',
+    adminPassword: 'Barra@2026',
+    inviteCode: 'BARRA-2026',
+    initialModule: 'roleta',
+    chosenSiteTemplate: 'URBAN_FLOW',
+    chosenSiteTitle: 'Barra Prime Imóveis · Lançamentos e Coberturas'
   },
   {
     id: 'tenant_nexus',
@@ -418,7 +433,12 @@ export const INITIAL_TENANTS: TenantAgency[] = [
     createdAt: '2026-09-18T16:00:00Z',
     trialEndsAt: '2026-10-02',
     nextBillingDate: '2026-10-02',
-    paymentMethod: 'PIX'
+    paymentMethod: 'PIX',
+    adminPassword: 'Nexus@2026',
+    inviteCode: 'NEXUS-2026',
+    initialModule: 'kanban',
+    chosenSiteTemplate: 'FAST_RENT',
+    chosenSiteTitle: 'Nexus Home & Prime Curitiba · Locação Digital'
   },
   {
     id: 'tenant_lumiere',
@@ -461,7 +481,12 @@ export const INITIAL_TENANTS: TenantAgency[] = [
     },
     createdAt: '2025-03-20T11:00:00Z',
     nextBillingDate: '2026-10-20',
-    paymentMethod: 'CARTAO_CREDITO'
+    paymentMethod: 'CARTAO_CREDITO',
+    adminPassword: 'Lumiere@2026',
+    inviteCode: 'LUMIERE-2026',
+    initialModule: 'sites_modelos',
+    chosenSiteTemplate: 'EXCLUSIVE_HIGH_END',
+    chosenSiteTitle: 'Lumière Imóveis Boutique BH · Alto Luxo Lourdes'
   },
   {
     id: 'tenant_beiramar',
@@ -491,7 +516,12 @@ export const INITIAL_TENANTS: TenantAgency[] = [
     },
     createdAt: '2024-08-14T08:00:00Z',
     nextBillingDate: '2026-09-14',
-    paymentMethod: 'BOLETO'
+    paymentMethod: 'BOLETO',
+    adminPassword: 'Beira@2026',
+    inviteCode: 'BEIRAMAR-2026',
+    initialModule: 'imoveis',
+    chosenSiteTemplate: 'HERITAGE_TRUST',
+    chosenSiteTitle: 'Beira Mar Soluções Imobiliárias · Florianópolis'
   }
 ];
 
@@ -527,6 +557,8 @@ export const INITIAL_PLATFORM_USERS: PlatformUserAccount[] = [
       notes: 'Contato direto emergência'
     },
     status: 'ATIVO',
+    password: 'Super@2026',
+    inviteCode: 'SUPER-MASTER-KEY',
     lastLoginAt: 'Hoje às 09:14',
     createdAt: '2023-11-01'
   },
@@ -561,6 +593,8 @@ export const INITIAL_PLATFORM_USERS: PlatformUserAccount[] = [
       notes: 'Tipo sanguíneo A+'
     },
     status: 'ATIVO',
+    password: 'Acert@2026',
+    inviteCode: 'MATRIZ-2026',
     lastLoginAt: 'Hoje às 08:30',
     createdAt: '2024-01-15'
   },
@@ -594,6 +628,8 @@ export const INITIAL_PLATFORM_USERS: PlatformUserAccount[] = [
       phone: '(11) 98777-3322'
     },
     status: 'ATIVO',
+    password: 'Acert@2026',
+    inviteCode: 'MATRIZ-2026',
     lastLoginAt: 'Hoje às 09:05',
     createdAt: '2024-01-20'
   },
@@ -626,6 +662,8 @@ export const INITIAL_PLATFORM_USERS: PlatformUserAccount[] = [
       phone: '(11) 99881-2233'
     },
     status: 'ATIVO',
+    password: 'Acert@2026',
+    inviteCode: 'MATRIZ-2026',
     lastLoginAt: 'Ontem às 17:40',
     createdAt: '2024-02-01'
   },
@@ -657,6 +695,8 @@ export const INITIAL_PLATFORM_USERS: PlatformUserAccount[] = [
       phone: '(11) 98222-1133'
     },
     status: 'ATIVO',
+    password: 'Acert@2026',
+    inviteCode: 'MATRIZ-2026',
     lastLoginAt: 'Hoje às 08:00',
     createdAt: '2024-01-18'
   },
@@ -686,6 +726,8 @@ export const INITIAL_PLATFORM_USERS: PlatformUserAccount[] = [
       phone: '(41) 98877-2211'
     },
     status: 'ATIVO',
+    password: 'Nexus@2026',
+    inviteCode: 'NEXUS-2026',
     lastLoginAt: 'Hoje às 10:12',
     createdAt: '2026-09-18'
   }

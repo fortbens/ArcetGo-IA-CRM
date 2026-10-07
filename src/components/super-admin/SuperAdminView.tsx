@@ -41,7 +41,10 @@ import {
   Upload,
   Image as ImageIcon,
   Check,
-  Globe
+  Globe,
+  Send,
+  Key,
+  Copy
 } from 'lucide-react';
 import { updateBrowserFavicon, readFileAsDataUrl } from '../../utils/faviconManager';
 
@@ -866,6 +869,27 @@ export const SuperAdminView: React.FC<SuperAdminViewProps> = ({
                             {/* Ações */}
                             <td className="py-3.5 px-4 text-right">
                               <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={() => {
+                                    const text = `🏢 *ACERTGO IMOBILIÁRIA - CREDENCIAIS DE ACESSO & INÍCIO DE TRABALHO*
+--------------------------------------------------
+*Imobiliária:* ${tenant.tradeName}
+*E-mail de Login:* ${tenant.ownerEmail}
+*Senha de Acesso:* ${tenant.adminPassword || 'Acert@2026'}
+*Código de Convite:* ${tenant.inviteCode || 'IMO-2026'}
+*Módulo de Entrada:* ${tenant.initialModule || 'kanban'}
+*Site Escolhido:* ${tenant.chosenSiteTemplate || 'URBAN_FLOW'}
+*Link do Sistema:* https://${tenant.subdomain || 'matriz.acertgo.com.br'}
+--------------------------------------------------
+👉 Inicie agora mesmo seus atendimentos!`;
+                                    navigator.clipboard.writeText(text);
+                                    alert(`Ficha de acesso de "${tenant.tradeName}" copiada com sucesso para WhatsApp!`);
+                                  }}
+                                  className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                  title="Copiar Ficha de Acesso WhatsApp"
+                                >
+                                  <Send className="w-4 h-4 text-emerald-600" />
+                                </button>
                                 <button
                                   onClick={() => {
                                     setSelectedTenantDetail(tenant);

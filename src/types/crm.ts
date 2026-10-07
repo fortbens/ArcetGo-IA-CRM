@@ -20,6 +20,8 @@ export interface UserProfile {
   tenantName: string;
   active: boolean;
   scorePoints: number;
+  initialModule?: string;
+  chosenSiteTemplate?: string;
 }
 
 export type LeadFunnelStage = 

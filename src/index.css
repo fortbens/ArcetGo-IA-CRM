@@ -138,3 +138,20 @@ h1, h2, h3, h4, .font-heading {
   word-break: break-word;
   min-width: 0;
 }
+
+/* Transições elegantes de Instância & Workspace CRM */
+@keyframes instanceFadeInSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.instance-transition-enter {
+  animation: instanceFadeInSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

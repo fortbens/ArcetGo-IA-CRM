@@ -32,6 +32,7 @@ import {
   WebsiteTemplateId, 
   WebsiteTemplateOption 
 } from '../../types/crm';
+import { TenantAgency } from '../../types/superAdmin';
 import { 
   WEBSITE_TEMPLATE_OPTIONS, 
   INITIAL_WEBSITE_CONFIG 
@@ -53,6 +54,8 @@ interface ModelSitesViewProps {
   onNewLeadFromWebsite?: (leadData: { name: string; phone: string; email: string; interest: string }) => void;
   onNavigateToCustomerPortal?: () => void;
   onNavigateToIndiqueGanhe?: () => void;
+  currentTenant?: TenantAgency | null;
+  onSaveTenant?: (tenant: Partial<TenantAgency>) => void;
 }
 
 export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
@@ -61,18 +64,54 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
   onNewLeadFromWebsite,
   onNavigateToCustomerPortal,
   onNavigateToIndiqueGanhe,
+  currentTenant,
+  onSaveTenant,
 }) => {
   // Website State & Cloud Persistence
-  const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig>(getInitialWebsiteConfig);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<WebsiteTemplateId>('URBAN_FLOW');
+  const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig>(() => {
+    const initial = getInitialWebsiteConfig();
+    if (currentTenant?.chosenSiteTemplate) {
+      initial.templateId = currentTenant.chosenSiteTemplate as WebsiteTemplateId;
+    }
+    if (currentTenant?.tradeName) {
+      initial.siteName = currentTenant.tradeName;
+    }
+    return initial;
+  });
+  const [selectedTemplateId, setSelectedTemplateId] = useState<WebsiteTemplateId>(() => {
+    return (currentTenant?.chosenSiteTemplate as WebsiteTemplateId) || 'URBAN_FLOW';
+  });
   const [previewDevice, setPreviewDevice] = useState<'DESKTOP' | 'TABLET' | 'MOBILE'>('DESKTOP');
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
   const [showCmsModal, setShowCmsModal] = useState(false);
   const [showFullscreenPreview, setShowFullscreenPreview] = useState(false);
-  const [customDomainInput, setCustomDomainInput] = useState('www.imobiliariapro.com.br');
-  const [whatsappFloatingNumber, setWhatsappFloatingNumber] = useState('(11) 98844-3322');
+  const [customDomainInput, setCustomDomainInput] = useState(() => {
+    if (currentTenant?.subdomain) {
+      return currentTenant.subdomain.includes('.') ? currentTenant.subdomain : `${currentTenant.subdomain}.acertgo.com.br`;
+    }
+    return 'www.imobiliariapro.com.br';
+  });
+  const [whatsappFloatingNumber, setWhatsappFloatingNumber] = useState(() => {
+    return currentTenant?.ownerPhone || '(11) 98844-3322';
+  });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Sincronizar com mudanças do tenant
+  useEffect(() => {
+    if (currentTenant?.chosenSiteTemplate) {
+      setSelectedTemplateId(currentTenant.chosenSiteTemplate as WebsiteTemplateId);
+    }
+    if (currentTenant?.subdomain) {
+      setCustomDomainInput(currentTenant.subdomain.includes('.') ? currentTenant.subdomain : `${currentTenant.subdomain}.acertgo.com.br`);
+    }
+    if (currentTenant?.ownerPhone) {
+      setWhatsappFloatingNumber(currentTenant.ownerPhone);
+    }
+    if (currentTenant?.tradeName) {
+      setWebsiteConfig(prev => ({ ...prev, siteName: currentTenant.tradeName }));
+    }
+  }, [currentTenant]);
 
   // Sincronização em tempo real entre todos os dispositivos (Desktop, Celular, Smart TV)
   useEffect(() => {
@@ -110,12 +149,18 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
       templateId
     };
     setWebsiteConfig(updated);
+    if (currentTenant && onSaveTenant) {
+      onSaveTenant({
+        id: currentTenant.id,
+        chosenSiteTemplate: templateId
+      });
+    }
     try {
       await saveWebsiteConfigToCloud(updated);
     } catch (e) {
       console.warn('Erro ao sincronizar template:', e);
     }
-    showToast(`Modelo alterado para "${WEBSITE_TEMPLATE_OPTIONS.find(t => t.id === templateId)?.name}"!`);
+    showToast(`Modelo alterado para "${WEBSITE_TEMPLATE_OPTIONS.find(t => t.id === templateId)?.name}"${currentTenant ? ` para ${currentTenant.tradeName}` : ''}!`);
   };
 
   const handlePublishWebsite = async (e?: React.FormEvent) => {
@@ -140,6 +185,12 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
       status: 'PUBLICADO'
     };
     setWebsiteConfig(updatedConfig);
+    if (currentTenant && onSaveTenant) {
+      onSaveTenant({
+        id: currentTenant.id,
+        chosenSiteTemplate: selectedTemplateId
+      });
+    }
     try {
       await saveWebsiteConfigToCloud(updatedConfig);
     } catch (err) {
@@ -147,7 +198,7 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
     }
     setIsPublishing(false);
     setPublishSuccess(true);
-    showToast('✅ Site Oficial publicado e sincronizado em todos os dispositivos!');
+    showToast(`✅ Site Oficial de ${currentTenant?.tradeName || websiteConfig.siteName} publicado e sincronizado!`);
     setTimeout(() => setPublishSuccess(false), 3000);
   };
 
@@ -205,7 +256,9 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
           <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
           <div className="text-xs">
             <span className="text-slate-500">Site Oficial Ativo: </span>
-            <strong className="text-slate-900 font-bold">{websiteConfig.siteName}</strong>
+            <strong className="text-slate-900 font-bold">{currentTenant ? currentTenant.tradeName : websiteConfig.siteName}</strong>
+            <span className="text-slate-400 mx-2">•</span>
+            <span className="text-blue-700 font-bold">Template: {activeTemplate.name}</span>
             <span className="text-slate-400 mx-2">•</span>
             <span className="text-emerald-700 font-bold font-mono">https://{customDomainInput}</span>
             <span className="px-2 py-0.5 ml-2 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">

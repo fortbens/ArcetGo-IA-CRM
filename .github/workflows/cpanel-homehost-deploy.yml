@@ -36,38 +36,19 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
 
-      - name: Preparar Build para Raiz e CRM com .htaccess Dedicados
+      - name: Preparar Build Exclusivo para o CRM com .htaccess Dedicado
         run: |
-          # 1. Garantir que dist tenha o .htaccess com no-cache estrito da raiz (public_html/)
-          cp public/.htaccess dist/.htaccess
+          # 1. Garantir que dist tenha o .htaccess dedicado do CRM (public_html/aicrm/)
+          cp public/.htaccess-crm dist/.htaccess
 
           # 2. Criar pasta dist-crm dedicada para o subdomínio/pasta aicrm
           rm -rf dist-crm
           cp -r dist dist-crm
-
-          # 3. Aplicar o .htaccess dedicado do CRM na pasta dist-crm
           cp public/.htaccess-crm dist-crm/.htaccess
 
-      - name: Sincronizar via FTP para Raiz (public_html/)
-        env:
-          FTP_SERVER: ${{ secrets.CPANEL_FTP_SERVER }}
-          FTP_USER: ${{ secrets.CPANEL_FTP_USERNAME }}
-          FTP_PASS: ${{ secrets.CPANEL_FTP_PASSWORD }}
-        if: ${{ env.FTP_SERVER != '' && env.FTP_USER != '' && env.FTP_PASS != '' }}
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.CPANEL_FTP_SERVER }}
-          username: ${{ secrets.CPANEL_FTP_USERNAME }}
-          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
-          server-dir: 'public_html/'
-          local-dir: './dist/'
-          state-name: '.ftp-deploy-sync-state-root.json'
-          dangerous-clean-slate: false
-          timeout: 60000
-          log-level: verbose
-          security: loose
-
-      - name: Sincronizar via FTP para CRM (public_html/aicrm/)
+      # NOTA DE SEGURANÇA: A raiz (public_html/) contém o site institucional da Fortbens e NUNCA é sincronizada.
+      # O CRM AcertGo é enviado única e exclusivamente para a pasta do subdomínio: public_html/aicrm/
+      - name: Sincronizar via FTP Exclusivamente para CRM (public_html/aicrm/)
         env:
           FTP_SERVER: ${{ secrets.CPANEL_FTP_SERVER }}
           FTP_USER: ${{ secrets.CPANEL_FTP_USERNAME }}
@@ -94,11 +75,12 @@ jobs:
         if: ${{ env.FTP_SERVER == '' || env.FTP_USER == '' || env.FTP_PASS == '' }}
         run: |
           echo "=========================================================================="
-          echo "ℹ️ SUCESSO NO BUILD! O projeto foi compilado perfeitamente na pasta dist/."
+          echo "ℹ️ SUCESSO NO BUILD! O CRM AcertGo foi compilado perfeitamente na pasta dist-crm/."
           echo "Para ativar o envio automático via FTP para sua hospedagem cPanel Homehost,"
           echo "configure os seguintes segredos no repositório GitHub (Settings -> Secrets and variables -> Actions):"
           echo "  - CPANEL_FTP_SERVER (ex: ftp.seudominio.com.br ou IP do servidor)"
           echo "  - CPANEL_FTP_USERNAME (ex: usuario_cpanel ou conta FTP)"
           echo "  - CPANEL_FTP_PASSWORD (senha da conta FTP)"
-          echo "Destinos configurados: public_html/ (raiz) e public_html/aicrm/ (subdomínio)"
+          echo "Destino exclusivo do CRM: public_html/aicrm/ (subdomínio)"
+          echo "A raiz (public_html/) permanece protegida com o site institucional da Fortbens."
           echo "=========================================================================="

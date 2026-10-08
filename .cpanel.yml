@@ -1,23 +1,24 @@
 ---
 deployment:
   tasks:
-    # 1. Diretórios oficiais no cPanel HomeHost (usa ${HOME} para compatibilidade total)
-    - export DEPLOY_DIR=${HOME}/public_html
+    # 1. Diretório oficial exclusivo do CRM AcertGo no subdomínio cPanel HomeHost
+    # IMPORTANTE: A raiz (${HOME}/public_html) pertence exclusivamente ao site institucional da Fortbens e NUNCA deve ser alterada ou sobrescrita.
     - export CRM_DIR=${HOME}/public_html/aicrm
-    - /bin/mkdir -p ${DEPLOY_DIR}
     - /bin/mkdir -p ${CRM_DIR}
 
-    # 2. Garante o arquivo .htaccess com suporte a SPA e HTTPS em ambos os domínios
-    - /bin/cp public/.htaccess ${DEPLOY_DIR}/.htaccess 2>/dev/null || true
-    - /bin/cp public/.htaccess ${CRM_DIR}/.htaccess 2>/dev/null || true
+    # 2. Configura o .htaccess exclusivo do CRM (suporte a SPA, HTTPS e no-cache estrito)
+    - /bin/cp public/.htaccess-crm ${CRM_DIR}/.htaccess 2>/dev/null || true
 
-    # 3. Copia os arquivos compilados da pasta dist/ para a página de vendas e para o CRM
+    # 3. Copia os arquivos compilados do CRM exclusivamente para a pasta do subdomínio (public_html/aicrm/)
     - |
-      if [ -d "dist" ] && [ "$(ls -A dist 2>/dev/null)" ]; then
-        /bin/cp -R dist/* ${DEPLOY_DIR}/
+      if [ -d "dist-crm" ] && [ "$(ls -A dist-crm 2>/dev/null)" ]; then
+        /bin/cp -R dist-crm/* ${CRM_DIR}/
+        echo "Sucesso: CRM AcertGo implantado exclusivamente em ${CRM_DIR}. O site institucional da Fortbens na raiz (public_html) permanece 100% intacto e protegido."
+      elif [ -d "dist" ] && [ "$(ls -A dist 2>/dev/null)" ]; then
         /bin/cp -R dist/* ${CRM_DIR}/
-        echo "Sucesso: Arquivos de dist/ copiados para ${DEPLOY_DIR} e ${CRM_DIR}"
+        /bin/cp public/.htaccess-crm ${CRM_DIR}/.htaccess 2>/dev/null || true
+        echo "Sucesso: CRM AcertGo implantado exclusivamente em ${CRM_DIR}. O site institucional da Fortbens na raiz (public_html) permanece 100% intacto e protegido."
       else
-        echo "Aviso: Pasta dist/ não encontrada no Git. Como o projeto é React/Vite, suba a pasta dist/ pelo Gerenciador de Arquivos ou via GitHub Actions FTP."
+        echo "Aviso: Pasta de compilação não encontrada no Git. Como o projeto é React/Vite, suba a pasta dist/ pelo Gerenciador de Arquivos ou via GitHub Actions FTP exclusivamente para public_html/aicrm/."
       fi
     - exit 0

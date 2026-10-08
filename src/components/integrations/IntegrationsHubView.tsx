@@ -170,8 +170,8 @@ export const IntegrationsHubView: React.FC<IntegrationsHubViewProps> = ({
   // HomeHost / cPanel
   const [cpanelHost, setCpanelHost] = useState('cpanel.homehost.com.br');
   const [cpanelUser, setCpanelUser] = useState('acert_imob');
-  const [cpanelTargetDir, setCpanelTargetDir] = useState('/public_html/');
-  const [cpanelDomain, setCpanelDomain] = useState('https://imoveis.acertgo.com.br');
+  const [cpanelTargetDir, setCpanelTargetDir] = useState('/public_html/aicrm/');
+  const [cpanelDomain, setCpanelDomain] = useState('https://aicrm.acertgo.com.br');
   const [isDeployingCpanel, setIsDeployingCpanel] = useState(false);
   const [lastDeployTime, setLastDeployTime] = useState('Hoje, às 10:45');
 
@@ -653,12 +653,15 @@ export const IntegrationsHubView: React.FC<IntegrationsHubViewProps> = ({
                     <strong className="text-slate-700 font-mono">{cpanelHost}</strong>
                   </div>
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-slate-500">Diretório Raiz:</span>
-                    <strong className="text-slate-700 font-mono">{cpanelTargetDir}</strong>
+                    <span className="text-slate-500">Diretório Exclusivo CRM:</span>
+                    <strong className="text-emerald-700 font-mono font-bold">{cpanelTargetDir}</strong>
+                  </div>
+                  <div className="text-[10px] text-amber-700 bg-amber-50 p-1.5 rounded-lg border border-amber-200">
+                    🛡️ Raiz (public_html/) reservada exclusivamente para o site da Fortbens. O CRM opera isolado no subdomínio aicrm.
                   </div>
                   <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
                     <span className="text-emerald-700 font-bold flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> .htaccess Integrado
+                      <Check className="w-3.5 h-3.5" /> .htaccess Integrado (aicrm)
                     </span>
                     <button
                       onClick={handleDownloadHtaccess}

@@ -33,6 +33,10 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
         run: npm run build
 
+      # ATENÇÃO DE SEGURANÇA:
+      # O deploy para o site principal (raiz) deve conter apenas o site institucional da Fortbens.
+      # O código do CRM AcertGo é destinado exclusivamente ao subdomínio (public_html/aicrm/).
+      # Caso utilize Firebase Hosting para o CRM, aponte para um subdomínio/site secundário dedicado (ex: aicrm).
       - name: Deploy to Firebase Hosting (Service Account)
         env:
           SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_GEN_LANG_CLIENT_0219105645 || secrets.FIREBASE_SERVICE_ACCOUNT }}
@@ -59,10 +63,7 @@ jobs:
         if: ${{ env.SERVICE_ACCOUNT == '' && env.FB_TOKEN == '' }}
         run: |
           echo "=========================================================================="
-          echo "ℹ️ SUCESSO NO BUILD! O projeto foi compilado perfeitamente na pasta dist/."
-          echo "Para ativar a implantação automática no Firebase Hosting,"
-          echo "adicione um dos seguintes segredos no repositório GitHub (Settings -> Secrets and variables -> Actions):"
-          echo "  - FIREBASE_SERVICE_ACCOUNT (Chave JSON da conta de serviço do Firebase)"
-          echo "  OU"
-          echo "  - FIREBASE_TOKEN (Token gerado pelo comando 'firebase login:ci')"
+          echo "ℹ️ SUCESSO NO BUILD! O CRM AcertGo foi compilado perfeitamente na pasta dist/."
+          echo "Lembrete: O deploy na raiz (public_html/ ou site principal) é exclusivo do site da Fortbens."
+          echo "O CRM AcertGo deve ser hospedado no subdomínio aicrm (public_html/aicrm/)."
           echo "=========================================================================="

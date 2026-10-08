@@ -20,7 +20,9 @@ Existem **2 motivos principais** para esse problema ocorrer na integração entr
 
 ## ✅ Solução 1: Deploy Automático via GitHub Actions (Recomendado)
 
-O GitHub possui servidores de alta performance gratuitos que compilam seu projeto (`npm run build`) em segundos e enviam apenas os arquivos prontos e leves via FTP diretamente para o seu `public_html` no cPanel.
+O GitHub possui servidores de alta performance gratuitos que compilam o CRM (`npm run build`) em segundos e enviam apenas os arquivos prontos e leves via FTP diretamente para o subdomínio `public_html/aicrm/` no cPanel.
+
+> ⚠️ **ATENÇÃO:** A raiz (`public_html/`) contém o site institucional da **Fortbens** e NÃO é tocada por esta rotina, evitando qualquer risco de sobrescrita. O CRM AcertGo vai exclusivamente para `public_html/aicrm/`.
 
 ### Passo a Passo (Leva menos de 3 minutos):
 
@@ -30,11 +32,10 @@ O GitHub possui servidores de alta performance gratuitos que compilam seu projet
    - `CPANEL_FTP_SERVER`: Endereço FTP do seu cPanel (exemplo: `ftp.seudominio.com.br` ou o IP do seu servidor Homehost).
    - `CPANEL_FTP_USERNAME`: Seu usuário do cPanel ou da conta FTP (exemplo: `seuusuario@seudominio.com.br`).
    - `CPANEL_FTP_PASSWORD`: A senha da sua conta FTP.
-   - `CPANEL_TARGET_DIR`: `public_html/` (ou a pasta do seu subdomínio, ex: `public_html/vendas/`).
 4. Pronto! A cada `git push` na branch `main`, o GitHub Actions:
    - Compila o código com Vite e TypeScript;
-   - Inclui o arquivo `.htaccess` para roteamento SPA;
-   - Transfere os arquivos atualizados para sua hospedagem com limite de 10 minutos (nunca mais ficará rodando horas!).
+   - Inclui o arquivo `.htaccess` específico do CRM para roteamento SPA e no-cache estrito;
+   - Transfere os arquivos atualizados exclusivamente para `public_html/aicrm/` na sua hospedagem (o site institucional da Fortbens na raiz fica 100% preservado!).
 
 ---
 
@@ -46,11 +47,12 @@ Caso você não queira configurar FTP agora:
    ```bash
    npm run build
    ```
-2. Acesse a pasta gerada `dist/`.
-3. Selecione todos os arquivos dentro de `dist/` (incluindo `index.html`, pasta `assets/` e `.htaccess`) e compacte em um arquivo `.zip`.
-4. Entre no **cPanel** > **Gerenciador de Arquivos** > navegue até a pasta `public_html`.
-5. Clique em **Carregar**, envie o arquivo `.zip` e clique com botão direito em **Extrair**.
-6. O site estará no ar instantaneamente!
+2. Acesse a pasta gerada `dist-crm/` (ou `dist/`).
+3. Selecione todos os arquivos dentro de `dist-crm/` (incluindo `index.html`, pasta `assets/` e `.htaccess`) e compacte em um arquivo `.zip`.
+4. Entre no **cPanel** > **Gerenciador de Arquivos** > navegue até a pasta do subdomínio: **`public_html/aicrm/`**.
+   *(NUNCA extraia na raiz `public_html/`, pois a raiz é do site Fortbens!)*
+5. Clique em **Carregar**, envie o arquivo `.zip` e clique com o botão direito em **Extrair**.
+6. O CRM AcertGo estará no ar com segurança e sem interferir no site principal!
 
 ---
 

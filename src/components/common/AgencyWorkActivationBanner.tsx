@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   Plus,
   Eye,
-  EyeOff
+  EyeOff,
+  Database,
+  Download
 } from 'lucide-react';
 import { TenantAgency } from '../../types/superAdmin';
 import { UserProfile } from '../../types/crm';
@@ -28,6 +30,7 @@ interface AgencyWorkActivationBannerProps {
   onOpenNewLead: () => void;
   onOpenUserModal?: () => void;
   onReturnToSuperAdmin?: () => void;
+  onDownloadDatabase?: () => void;
 }
 
 export const AgencyWorkActivationBanner: React.FC<AgencyWorkActivationBannerProps> = ({
@@ -36,7 +39,8 @@ export const AgencyWorkActivationBanner: React.FC<AgencyWorkActivationBannerProp
   onNavigateTab,
   onOpenNewLead,
   onOpenUserModal,
-  onReturnToSuperAdmin
+  onReturnToSuperAdmin,
+  onDownloadDatabase
 }) => {
   const [isDismissed, setIsDismissed] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -299,6 +303,16 @@ export const AgencyWorkActivationBanner: React.FC<AgencyWorkActivationBannerProp
                 >
                   <Users className="w-3.5 h-3.5 text-blue-400" />
                   <span>Criar Usuários / Equipe</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onDownloadDatabase || (() => onNavigateTab('migration_backup'))}
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center gap-1.5 shadow-sm transition-all"
+                  title="Baixar backup completo de dados desta imobiliária (JSON/Estrutura)"
+                >
+                  <Database className="w-3.5 h-3.5 text-indigo-200" />
+                  <span>Baixar Banco de Dados</span>
                 </button>
               </div>
 

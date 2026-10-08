@@ -60,6 +60,7 @@ import { SalesProposalsView } from './components/sales/SalesProposalsView';
 import { PtamModuleView } from './components/ptam/PtamModuleView';
 import { MarketingIaStudioView } from './components/marketing/MarketingIaStudioView';
 import { DataMigrationBackupView } from './components/migration/DataMigrationBackupView';
+import { downloadTenantDatabaseBackup } from './utils/databaseBackupExporter';
 import { AgencyGovernanceRulesView } from './components/super-admin/AgencyGovernanceRulesView';
 import { LoginAuthView } from './components/auth/LoginAuthView';
 import { BirthdayWishesHubModal } from './components/modals/BirthdayWishesHubModal';
@@ -631,6 +632,39 @@ export default function App() {
         isRead: false
       });
     }
+  };
+
+  // Handler para download do banco de dados completo da imobiliária
+  const handleDownloadTenantDatabase = () => {
+    const currentTenant = tenants.find(t => t.id === currentTenantId) || tenants[0];
+    const tenantName = currentTenant ? currentTenant.tradeName : (currentUser.tenantName || 'Minha Imobiliária');
+    const result = downloadTenantDatabaseBackup({
+      tenantName,
+      tenantId: currentTenantId,
+      userName: currentUser.name,
+      userEmail: currentUser.email,
+      leads,
+      properties,
+      owners,
+      contracts,
+      commissions,
+      ccaProposals,
+      queues,
+      themeConfig
+    });
+
+    handleSendNotification({
+      title: 'Banco de Dados Baixado com Sucesso',
+      message: `O backup oficial de "${tenantName}" (${result.totalRecords} registros) foi gerado e baixado como ${result.fileName}.`,
+      category: 'PLATAFORMA_SISTEMA',
+      priority: 'MEDIA',
+      channels: ['IN_APP'],
+      targetAudience: 'TODA_IMOBILIARIA',
+      senderName: 'Governança & Backup',
+      senderRole: 'SISTEMA',
+      isRead: false
+    });
+    showNavToast(`✓ Banco de dados de "${tenantName}" baixado com sucesso (${result.totalRecords} registros)`);
   };
 
   const handlePurgeProductionData = () => {
@@ -2438,6 +2472,7 @@ export default function App() {
         isImpersonatingTenant={!!superAdminOriginalUser}
         principalManagerName={activeTenant?.ownerName}
         principalManagerEmail={activeTenant?.ownerEmail}
+        onDownloadDatabase={handleDownloadTenantDatabase}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
@@ -2468,6 +2503,7 @@ export default function App() {
               onNavigateTab={(tab) => handleNavigateTab(tab as NavTabId)}
               onOpenNewLead={() => setShowNewLeadModal(true)}
               onReturnToSuperAdmin={superAdminOriginalUser ? handleReturnToSuperAdmin : undefined}
+              onDownloadDatabase={handleDownloadTenantDatabase}
             />
           )}
           {currentTab === 'notifications_center' && (

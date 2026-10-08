@@ -28,7 +28,8 @@ import {
   Cake,
   Tv,
   Globe,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
 import { UserProfile, TenantId } from '../../types/crm';
 import { CURRENT_USER_PROFILES } from '../../data/mockData';
@@ -75,6 +76,7 @@ interface HeaderProps {
   isImpersonatingTenant?: boolean;
   principalManagerName?: string;
   principalManagerEmail?: string;
+  onDownloadDatabase?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -116,7 +118,8 @@ export const Header: React.FC<HeaderProps> = ({
   onReturnToSuperAdmin,
   isImpersonatingTenant = false,
   principalManagerName,
-  principalManagerEmail
+  principalManagerEmail,
+  onDownloadDatabase
 }) => {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showTenantDropdown, setShowTenantDropdown] = useState(false);
@@ -464,6 +467,19 @@ export const Header: React.FC<HeaderProps> = ({
                 <Database className="w-4 h-4 text-slate-500" />
                 <span>Estrutura do Banco de Dados</span>
               </button>
+
+              {onDownloadDatabase && (
+                <button
+                  onClick={() => {
+                    onDownloadDatabase();
+                    setShowShortcutsMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors cursor-pointer font-bold border-t border-slate-100"
+                >
+                  <Download className="w-4 h-4 text-emerald-600" />
+                  <span>Baixar Banco de Dados (Backup)</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -840,6 +856,29 @@ export const Header: React.FC<HeaderProps> = ({
                     </span>
                     <span className="text-[10px] bg-indigo-200/60 text-indigo-800 px-1 rounded font-semibold">
                       Governança
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Opção Rápida de Baixar Banco de Dados para o Administrador da Imobiliária */}
+              {onDownloadDatabase && (
+                <div className="pt-1 mt-1 border-t border-slate-100 px-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRoleDropdown(false);
+                      onDownloadDatabase();
+                    }}
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 transition-colors flex items-center justify-between cursor-pointer"
+                    title="Baixar banco de dados completo da imobiliária (Backup JSON)"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Database className="w-3.5 h-3.5 text-emerald-600" />
+                      Baixar Banco de Dados
+                    </span>
+                    <span className="text-[10px] bg-emerald-200/70 text-emerald-900 px-1.5 py-0.5 rounded font-black flex items-center gap-0.5">
+                      <Download className="w-2.5 h-2.5" /> Backup
                     </span>
                   </button>
                 </div>

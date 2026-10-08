@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
-    "build": "tsc && vite build && cp public/.htaccess dist/.htaccess && rm -rf dist-crm && cp -r dist dist-crm && cp public/.htaccess-crm dist-crm/.htaccess",
+    "build": "tsc && vite build && cp public/.htaccess-crm dist/.htaccess && rm -rf dist-crm && cp -r dist dist-crm && cp public/.htaccess-crm dist-crm/.htaccess",
+    "build:crm": "npm run build",
     "deploy": "npm run clean && npm run build",
     "preview": "vite preview",
     "clean": "rm -rf dist dist-crm server.js",

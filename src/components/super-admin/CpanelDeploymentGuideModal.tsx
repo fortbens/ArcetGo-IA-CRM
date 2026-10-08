@@ -128,7 +128,7 @@ export const CpanelDeploymentGuideModal: React.FC<CpanelDeploymentGuideModalProp
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Página de Vendas em <strong className="text-white">acertgo.com.br</strong> e CRM em <strong className="text-blue-400">aicrm.acertgo.com.br</strong>
+                Site Fortbens protegido na raiz (<strong className="text-white">public_html/</strong>) e CRM em <strong className="text-emerald-400">public_html/aicrm/</strong>
               </p>
             </div>
           </div>
@@ -146,47 +146,47 @@ export const CpanelDeploymentGuideModal: React.FC<CpanelDeploymentGuideModalProp
           
           {/* Top Architecture Overview Banner */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Box 1: Página de Vendas */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-950 to-slate-900 border border-slate-800 space-y-2">
+            {/* Box 1: Site Fortbens */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-950 to-slate-900 border border-amber-500/30 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-blue-400" />
-                  Domínio Principal (Público)
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-amber-400" />
+                  Domínio Principal (Raiz Protegida)
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                  Página de Vendas
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  Site Fortbens
                 </span>
               </div>
               <div className="text-base font-extrabold text-white">
-                https://acertgo.com.br
+                Site Institucional Fortbens
               </div>
-              <p className="text-xs text-slate-400">
-                Pasta cPanel: <code className="text-blue-300 font-mono">public_html/</code>
+              <p className="text-xs text-slate-300">
+                Pasta cPanel: <code className="text-amber-300 font-mono font-bold">public_html/</code>
               </p>
               <div className="text-[11px] text-slate-400">
-                Exibe a Landing Page de Alta Conversão, calculadora de ROI, planos e botão com redirecionamento direto para o login no CRM.
+                ⚠️ <strong>Área Protegida:</strong> NUNCA envie o build do CRM para esta pasta. A raiz é exclusiva do site institucional da Fortbens e permanece 100% preservada.
               </div>
             </div>
 
             {/* Box 2: CRM & ERP */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 to-slate-900 border border-blue-900/40 space-y-2">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/40 to-slate-900 border border-emerald-500/40 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-emerald-400" />
-                  Subdomínio da Plataforma
+                  Subdomínio Exclusivo do CRM
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  CRM / ERP / Fintech
+                  CRM AcertGo
                 </span>
               </div>
               <div className="text-base font-extrabold text-emerald-400">
                 https://aicrm.acertgo.com.br
               </div>
-              <p className="text-xs text-slate-400">
-                Pasta cPanel: <code className="text-emerald-300 font-mono">public_html/aicrm/</code>
+              <p className="text-xs text-slate-300">
+                Pasta cPanel: <code className="text-emerald-300 font-mono font-bold">public_html/aicrm/</code>
               </p>
               <div className="text-[11px] text-slate-400">
-                Exibe a tela de login segura, roleta de distribuição de leads, gestão de imóveis, split bancário e dashboards internos.
+                Destino exclusivo e único da compilação do CRM. Contém a governança imobiliária, roleta, gestão de imóveis, split bancário e dashboards.
               </div>
             </div>
           </div>
@@ -279,12 +279,12 @@ export const CpanelDeploymentGuideModal: React.FC<CpanelDeploymentGuideModalProp
             <div className="space-y-4 animate-in fade-in duration-150">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-black">3</span>
-                Compilação e Envio para o cPanel (Build Único Inteligente)
+                Compilação e Envio do CRM Exclusivamente para o Subdomínio
               </h3>
-              <div className="p-3 bg-blue-950/40 rounded-xl border border-blue-800/60 text-blue-200 text-xs flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-blue-400 shrink-0" />
+              <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-800/60 text-emerald-200 text-xs flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-emerald-400 shrink-0" />
                 <span>
-                  <strong>Detecção de Domínio 100% Automática:</strong> O código identifica sozinho se o visitante acessou por <code>acertgo.com.br</code> (abrindo a Página de Vendas) ou <code>aicrm.acertgo.com.br</code> (abrindo o CRM). Você só precisa compilar uma vez!
+                  <strong>Proteção Total da Raiz:</strong> O código do CRM (AcertGo) é compilado e enviado <strong>exclusivamente</strong> para a pasta do subdomínio (<code>public_html/aicrm/</code>), garantindo que o site institucional da Fortbens na raiz não seja sobrescrito!
                 </span>
               </div>
               <ol className="list-decimal list-inside space-y-2 text-slate-300">
@@ -293,11 +293,11 @@ export const CpanelDeploymentGuideModal: React.FC<CpanelDeploymentGuideModalProp
                     npm run build
                   </div>
                 </li>
-                <li>Será gerada a pasta <strong>dist/</strong> contendo o arquivo <code>index.html</code>, a pasta <code>assets/</code> e o arquivo <code>.htaccess</code>.</li>
+                <li>Serão geradas as pastas <strong>dist-crm/</strong> e <strong>dist/</strong> contendo a aplicação do CRM e o <code>.htaccess</code> configurado.</li>
                 <li>No <strong>Gerenciador de Arquivos</strong> do cPanel:
-                  <ul className="list-disc list-inside ml-4 mt-1 space-y-1 text-slate-400">
-                    <li>Envie o conteúdo de <code>dist/</code> para a raiz: <code className="text-white">public_html/</code> (atende <em>acertgo.com.br</em>).</li>
-                    <li>Envie também para a pasta do subdomínio: <code className="text-emerald-400">public_html/aicrm/</code> (atende <em>aicrm.acertgo.com.br</em>).</li>
+                  <ul className="list-disc list-inside ml-4 mt-1 space-y-1 text-slate-300">
+                    <li className="text-emerald-400 font-semibold">Envie o conteúdo para a pasta do subdomínio: <code className="text-white bg-slate-900 px-1 py-0.5 rounded">public_html/aicrm/</code> (atende <em>aicrm.acertgo.com.br</em>).</li>
+                    <li className="text-amber-400 font-medium">⚠️ NUNCA envie para <code className="line-through text-slate-400">public_html/</code> raiz (reservada para o site Fortbens).</li>
                   </ul>
                 </li>
               </ol>
@@ -399,9 +399,10 @@ export const CpanelDeploymentGuideModal: React.FC<CpanelDeploymentGuideModalProp
                   </p>
                   <div className="p-3 bg-slate-900/90 rounded-lg text-xs space-y-1.5 text-slate-300">
                     <div>1. No seu computador, rode <code className="text-blue-400 font-bold">npm run build</code>.</div>
-                    <div>2. Compacte a pasta <strong>dist</strong> em um arquivo <code>dist.zip</code>.</div>
-                    <div>3. No Gerenciador de Arquivos do cPanel, faça o upload e extraia em <code>public_html/</code> e <code>public_html/aicrm/</code>.</div>
-                    <div className="text-emerald-400 font-semibold">✓ Funciona imediatamente, com máxima velocidade e sem nenhum conflito de git!</div>
+                    <div>2. Compacte a pasta <strong>dist-crm</strong> (ou <strong>dist</strong>) em um arquivo <code>crm.zip</code>.</div>
+                    <div>3. No Gerenciador de Arquivos do cPanel, faça o upload e extraia <strong>exclusivamente em <code>public_html/aicrm/</code></strong>.</div>
+                    <div className="text-amber-300 text-[11px]">⚠️ Não altere a raiz <code>public_html/</code> — ela é do site institucional da Fortbens.</div>
+                    <div className="text-emerald-400 font-semibold">✓ Funciona imediatamente em aicrm.acertgo.com.br, com máxima velocidade e total segurança!</div>
                   </div>
                 </div>
               </div>

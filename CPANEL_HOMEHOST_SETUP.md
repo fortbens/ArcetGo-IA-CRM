@@ -1,17 +1,19 @@
 # Configuração e Publicação no cPanel da HomeHost
-## Arquitetura Multi-Domínio AcertGo
+## Arquitetura de Hospedagem Segura
 
-- **Página de Vendas (Pública):** `https://acertgo.com.br` e `https://www.acertgo.com.br`
-- **Plataforma CRM / ERP (Interna):** `https://aicrm.acertgo.com.br`
+- **Site Institucional Fortbens (Domínio Principal / Raiz):** Pasta `public_html/` (Protegido — NUNCA sobrescrever!).
+- **Plataforma CRM / ERP AcertGo (Subdomínio Exclusivo):** `https://aicrm.acertgo.com.br` -> Pasta `public_html/aicrm/`.
+
+> ⚠️ **ATENÇÃO CRÍTICA DE DEPLOY:**
+> O site institucional da **Fortbens** reside na raiz (`public_html/`). 
+> O código do CRM (**AcertGo**) é compilado e enviado **exclusivamente** para a pasta do subdomínio (`public_html/aicrm/`), garantindo que o site da Fortbens na raiz **jamais** seja sobrescrito ou modificado.
 
 ---
 
-## Como a Aplicação se Comporta
-O código foi programado com **detecção automática inteligente de host (`window.location.hostname`)**:
-1. Quando o visitante acessa **`acertgo.com.br`**, a aplicação detecta o domínio raiz e renderiza **diretamente a Página de Vendas (Landing Page)** com apresentação dos planos, calculadora de ROI, depoimentos e o botão **"Acessar CRM"**.
-2. Quando o usuário clica em "Acessar CRM" ou acessa **`aicrm.acertgo.com.br`**, a aplicação detecta o subdomínio e abre **diretamente a Tela de Login e Governança do CRM**.
-3. Na tela de login do CRM, há um botão de retorno que direciona para `https://acertgo.com.br`.
-4. Um único build compilado (`npm run build`) atende ambos os domínios perfeitamente.
+## Como a Aplicação do CRM se Comporta
+1. O CRM AcertGo opera em `https://aicrm.acertgo.com.br` com tela de login, governança multi-tenancy, roleta de corretores, gestão de imóveis, ERP financeiro e esteiras de contratos.
+2. Na raiz (`public_html/`), permanece exclusivamente o site institucional da Fortbens.
+3. Todo o build do CRM é direcionado para `dist-crm/` e deve ser publicado em `public_html/aicrm/`.
 
 ---
 
@@ -22,47 +24,42 @@ O código foi programado com **detecção automática inteligente de host (`wind
 2. Na seção **Domínios**, clique em **Subdomínios** (ou *Domains*).
 3. Preencha:
    - **Subdomínio:** `aicrm`
-   - **Domínio:** `acertgo.com.br`
-   - **Raiz do Documento:** `public_html/aicrm` (ou o diretório sugerido pelo cPanel).
+   - **Domínio:** `acertgo.com.br` (ou o domínio da sua empresa)
+   - **Raiz do Documento:** `public_html/aicrm` (pasta dedicada).
 4. Clique em **Criar**.
 
 ---
 
 ### 2. Apontamento de DNS (Zona DNS)
 No cPanel da HomeHost (ou no Registro.br / Cloudflare, caso utilize DNS externo):
-- **acertgo.com.br** (Tipo A) -> IP do servidor HomeHost
-- **www.acertgo.com.br** (CNAME) -> `acertgo.com.br`
-- **aicrm.acertgo.com.br** (CNAME ou Tipo A) -> `acertgo.com.br` (ou IP do servidor)
+- **aicrm.acertgo.com.br** (CNAME ou Tipo A) -> Apontando para o IP do servidor HomeHost.
 
 ---
 
-### 3. Gerar o Pacote de Produção
+### 3. Gerar o Pacote de Produção do CRM
 No terminal do projeto, execute:
 ```bash
 npm run build
 ```
-Será gerada a pasta `dist/` com:
-- `index.html`
+Serão geradas as pastas `dist/` e `dist-crm/` com:
+- `index.html` (Aplicação CRM)
 - Pasta `assets/` (arquivos JS e CSS minificados)
-- `.htaccess` (configuração Apache já pré-otimizada)
+- `.htaccess` (configuração Apache/LiteSpeed dedicada com SPA routing e no-cache estrito)
 
 ---
 
 ### 4. Envio dos Arquivos pelo Gerenciador de Arquivos do cPanel
 1. No cPanel, abra o **Gerenciador de Arquivos**.
-2. **Para a Página de Vendas (`acertgo.com.br`):**
-   - Acesse a pasta `public_html/`
-   - Envie e extraia o conteúdo da pasta `dist/`.
-3. **Para o CRM (`aicrm.acertgo.com.br`):**
-   - Acesse a pasta `public_html/aicrm/` (a pasta do subdomínio criada no Passo 1).
-   - Envie e extraia o conteúdo da pasta `dist/`.
-   - *Nota:* Certifique-se de que o arquivo `.htaccess` esteja presente em ambas as pastas (no cPanel, ative a opção "Mostrar Arquivos Ocultos / dotfiles" nas configurações da barra superior).
+2. Acesse a pasta exclusiva do CRM: **`public_html/aicrm/`** (a pasta do subdomínio criada no Passo 1).
+3. Envie e extraia o conteúdo da pasta `dist-crm/` (ou `dist/`).
+4. **NÃO altere nem envie arquivos para a raiz `public_html/`**, pois ela pertence ao site institucional da Fortbens!
+5. *Nota:* Certifique-se de que o arquivo `.htaccess` esteja presente dentro de `public_html/aicrm/` (ative a opção "Mostrar Arquivos Ocultos / dotfiles" nas configurações da barra superior do Gerenciador de Arquivos).
 
 ---
 
 ### 5. Ativar o SSL Gratuito (HTTPS)
 1. No cPanel, acesse **Segurança** > **Status do SSL/TLS**.
-2. Verifique se `acertgo.com.br`, `www.acertgo.com.br` e `aicrm.acertgo.com.br` aparecem na lista.
+2. Verifique se `aicrm.acertgo.com.br` aparece na lista.
 3. Clique em **Executar AutoSSL** (*Run AutoSSL*).
 4. O certificado Let's Encrypt / cPanel será emitido gratuitamente em alguns minutos.
 

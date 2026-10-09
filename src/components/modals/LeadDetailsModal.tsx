@@ -65,6 +65,7 @@ import { LeadPropertyRadarModal } from '../leads/LeadPropertyRadarModal';
 import { CustomerCustodyPortalModal } from './CustomerCustodyPortalModal';
 import { FreeAiToolsHubModal } from '../ai/FreeAiToolsHubModal';
 import { analyzeLeadScoringWithGemini } from '../../services/aiService';
+import { calculateMinutesElapsed, formatSlaTime } from '../../hooks/useLeadSlaMonitor';
 
 interface LeadDetailsModalProps {
   lead: Lead;
@@ -883,6 +884,41 @@ export const LeadDetailsModal: React.FC<LeadDetailsModalProps> = ({
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* SLA Alert Monitor Badge for NOVO_LEAD */}
+          {lead.stage === 'NOVO_LEAD' && (() => {
+            const slaMins = calculateMinutesElapsed(lead);
+            const isBreached = slaMins >= 30 && (!lead.timeline || lead.timeline.length === 0);
+            return (
+              <div className={`mt-3 p-2.5 rounded-xl border flex flex-wrap items-center justify-between gap-2 text-xs ${
+                isBreached
+                  ? 'bg-amber-300 text-amber-950 border-amber-400 font-extrabold shadow-md animate-pulse'
+                  : 'bg-slate-800 text-slate-200 border-slate-700'
+              }`}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <Clock className={`w-4 h-4 shrink-0 ${isBreached ? 'text-amber-900 animate-spin' : 'text-slate-400'}`} />
+                  <span className="truncate">
+                    {isBreached
+                      ? `⚠️ SLA VIOLADO: Lead sem atendimento há mais de 30 minutos (${formatSlaTime(slaMins)})! Ação imediata necessária.`
+                      : `SLA Primeiro Contato: ${formatSlaTime(slaMins)} decorridos (Limite seguro: 30 minutos)`}
+                  </span>
+                </div>
+                <a
+                  href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}?text=Ol%C3%A1%20${encodeURIComponent(lead.name)},%20sou%20o%20corretor%20respons%C3%A1vel%20pelo%20seu%20atendimento.`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black flex items-center gap-1 transition-all shadow-xs ${
+                    isBreached
+                      ? 'bg-amber-950 text-amber-100 hover:bg-black'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  }`}
+                >
+                  <Phone className="w-3 h-3" />
+                  <span>Atender via WhatsApp Agora</span>
+                </a>
+              </div>
+            );
+          })()}
 
           {/* Quick Action bar & Funnel Selector */}
           <div className="mt-4 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">

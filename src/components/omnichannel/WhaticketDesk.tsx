@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { Lead, ChatMessage, LeadFunnelStage, UserProfile } from '../../types/crm';
 import { askAcertAiSdr } from '../../services/aiService';
+import { useLeadSlaMonitor } from '../../hooks/useLeadSlaMonitor';
 
 interface WhaticketDeskProps {
   leads: Lead[];
@@ -56,6 +57,8 @@ export const WhaticketDesk: React.FC<WhaticketDeskProps> = ({
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
   // Right dossier drawer toggle on tablets & mobile
   const [showDossierDrawer, setShowDossierDrawer] = useState(false);
+
+  const { checkLeadSla, breachedCount } = useLeadSlaMonitor(leads);
 
   const selectedLead = leads.find(l => l.id === selectedLeadId) || leads[0];
   const messages = (selectedLead ? chatMessages[selectedLead.id] : []) || [];
@@ -233,10 +236,23 @@ export const WhaticketDesk: React.FC<WhaticketDeskProps> = ({
                     <span className="text-[10px] text-slate-400 font-mono shrink-0">{lead.lastMessageTime}</span>
                   </div>
                   <p className="text-[11px] text-slate-500 truncate mt-0.5">{lead.lastMessageText}</p>
-                  <div className="flex items-center gap-1.5 mt-1">
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                     <span className="text-[9px] font-semibold text-blue-700 bg-blue-100/60 px-1.5 py-0.2 rounded">
                       {lead.assignedBrokerName}
                     </span>
+                    {lead.stage === 'NOVO_LEAD' && (() => {
+                      const sla = checkLeadSla(lead);
+                      if (!sla.isBreached) return null;
+                      return (
+                        <span 
+                          className="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-300 text-amber-950 border border-amber-400 animate-pulse flex items-center gap-0.5"
+                          title={`Lead sem contato há ${sla.timeFormatted} (SLA estourado)`}
+                        >
+                          <Clock className="w-2.5 h-2.5 text-amber-900" />
+                          SLA +30m ({sla.timeFormatted})
+                        </span>
+                      );
+                    })()}
                     {lead.unreadMessagesCount > 0 && (
                       <span className="w-4 h-4 rounded-full bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center">
                         {lead.unreadMessagesCount}
@@ -287,6 +303,20 @@ export const WhaticketDesk: React.FC<WhaticketDeskProps> = ({
 
               {/* Chat Header Controls */}
               <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                {selectedLead.stage === 'NOVO_LEAD' && (() => {
+                  const sla = checkLeadSla(selectedLead);
+                  if (!sla.isBreached) return null;
+                  return (
+                    <span 
+                      className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-300 text-amber-950 border border-amber-400 animate-pulse shadow-2xs"
+                      title={`Lead sem atendimento há ${sla.timeFormatted}. Envie a primeira mensagem agora!`}
+                    >
+                      <Clock className="w-3 h-3 text-amber-900" />
+                      ⚠️ SLA +30m ({sla.timeFormatted})
+                    </span>
+                  );
+                })()}
+
                 {/* Stage Selector Dropdown */}
                 <select
                   value={selectedLead.stage}

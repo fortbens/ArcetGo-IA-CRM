@@ -28,6 +28,7 @@ import {
   UserAddress,
   UserEmergencyContact
 } from '../../types/superAdmin';
+import { optimizeImageFile } from '../../utils/imageOptimizer';
 
 interface UserAdminModalProps {
   isOpen: boolean;
@@ -224,22 +225,27 @@ export const UserAdminModal: React.FC<UserAdminModalProps> = ({
     }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setFormError('A foto selecionada ultrapassa o limite de 2MB. Por favor, escolha uma imagem menor.');
-        return;
-      }
       setFormError(null);
-      const reader = new FileReader();
-      reader.onload = (event) => {
+      try {
+        // Redimensiona e otimiza automaticamente sem travar por limite de 2MB
+        const optimized = await optimizeImageFile(file, { maxWidth: 800, maxHeight: 800, quality: 0.9 });
         setFormData(prev => ({
           ...prev,
-          avatar: event.target?.result as string
+          avatar: optimized
         }));
-      };
-      reader.readAsDataURL(file);
+      } catch {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setFormData(prev => ({
+            ...prev,
+            avatar: event.target?.result as string
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -583,9 +589,14 @@ export const UserAdminModal: React.FC<UserAdminModalProps> = ({
                 </div>
 
                 <div className="flex-1 text-center sm:text-left space-y-2">
-                  <h4 className="font-bold text-slate-900 text-sm">Foto de Perfil do Usuário</h4>
+                  <div className="flex items-center gap-2 justify-center sm:justify-start">
+                    <h4 className="font-bold text-slate-900 text-sm">Foto de Perfil do Usuário</h4>
+                    <span className="px-2 py-0.5 text-[9px] font-bold text-emerald-700 bg-emerald-100 rounded-full">
+                      Sem Limite de Tamanho
+                    </span>
+                  </div>
                   <p className="text-slate-500 text-[11px]">
-                    Utilizada no CRM, cabeçalho, roleta de atendimento e relatórios de comissões.
+                    Utilizada no CRM, cabeçalho, roleta de atendimento e relatórios de comissões (suporta fotos em alta resolução de qualquer tamanho).
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                     <input

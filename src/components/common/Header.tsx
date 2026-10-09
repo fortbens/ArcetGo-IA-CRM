@@ -77,6 +77,7 @@ interface HeaderProps {
   principalManagerName?: string;
   principalManagerEmail?: string;
   onDownloadDatabase?: () => void;
+  onOpenAdminProfileCustomizer?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -119,7 +120,8 @@ export const Header: React.FC<HeaderProps> = ({
   isImpersonatingTenant = false,
   principalManagerName,
   principalManagerEmail,
-  onDownloadDatabase
+  onDownloadDatabase,
+  onOpenAdminProfileCustomizer
 }) => {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showTenantDropdown, setShowTenantDropdown] = useState(false);
@@ -837,6 +839,29 @@ export const Header: React.FC<HeaderProps> = ({
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Admin Profile & Customizations (No 2MB limit, CMS vs System) */}
+              {onOpenAdminProfileCustomizer && (
+                <div className="pt-2 mt-1 border-t border-slate-100 px-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRoleDropdown(false);
+                      onOpenAdminProfileCustomizer();
+                    }}
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 transition-colors flex items-center justify-between cursor-pointer"
+                    title="Editar Perfil, Foto sem limite de tamanho, Cores e Logotipos do Sistema e CMS"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                      Perfil & Personalizações
+                    </span>
+                    <span className="text-[10px] bg-blue-200/70 text-blue-900 px-1.5 py-0.5 rounded font-black">
+                      Cores & CMS
+                    </span>
+                  </button>
                 </div>
               )}
 

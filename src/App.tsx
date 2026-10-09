@@ -96,8 +96,15 @@ import {
   subscribePropertiesFromCloud,
   savePropertiesToCloud,
   saveSinglePropertyToCloud,
-  deletePropertyFromCloud
+  deletePropertyFromCloud,
+  getInitialWebsiteConfig,
+  saveWebsiteConfigToCloud,
+  subscribeWebsiteConfigFromCloud
 } from './services/systemPersistenceService';
+import { WebsiteStandalonePageView } from './components/portals/WebsiteStandalonePageView';
+import { AdminProfileCustomizerModal } from './components/admin/AdminProfileCustomizerModal';
+import { ContextualHelpWidget } from './components/help/ContextualHelpWidget';
+import { WebsiteConfig } from './types/crm';
 import { auth } from './services/firebase';
 
 import { 
@@ -193,6 +200,22 @@ function isTvRankingRouteUrl(): boolean {
     s.includes('mode=tv') ||
     s.includes('tv-ranking') ||
     s.includes('painel=tv')
+  );
+}
+
+// Detecção inteligente de rota do Site Oficial Público em Nova Aba (/site-oficial, #/site-oficial, ?view=site-oficial)
+export function isOfficialWebsiteRouteUrl(): boolean {
+  if (typeof window === 'undefined') return false;
+  const p = window.location.pathname.toLowerCase();
+  const h = window.location.hash.toLowerCase();
+  const s = window.location.search.toLowerCase();
+  return (
+    h.includes('site-oficial') ||
+    h.includes('site_oficial') ||
+    p.includes('/site-oficial') ||
+    s.includes('view=site-oficial') ||
+    s.includes('site=oficial') ||
+    s.includes('mode=site')
   );
 }
 
@@ -1282,6 +1305,27 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>(INITIAL_AUDIT_LOGS);
   const activeTenant = tenants.find(t => t.id === currentTenantId) || tenants[0];
 
+  // Configuração Unificada de Site Modelo e CMS Sincronizada
+  const [websiteConfig, setWebsiteConfig] = useState<WebsiteConfig>(() => {
+    const initial = getInitialWebsiteConfig();
+    if (activeTenant?.chosenSiteTemplate) {
+      initial.templateId = activeTenant.chosenSiteTemplate as any;
+    }
+    if (activeTenant?.tradeName) {
+      initial.siteName = activeTenant.tradeName;
+    }
+    return initial;
+  });
+
+  const [showAdminProfileCustomizer, setShowAdminProfileCustomizer] = useState(false);
+
+  useEffect(() => {
+    const unsub = subscribeWebsiteConfigFromCloud((cloudConfig) => {
+      setWebsiteConfig(cloudConfig);
+    });
+    return () => unsub();
+  }, []);
+
   // Escuta alterações de White-Label em tempo real
   useEffect(() => {
     const unsub = subscribeSystemConfigFromCloud((cloudConfig) => {
@@ -1424,6 +1468,41 @@ export default function App() {
       setPlatformUsers(nextUsers);
       await savePlatformUsersToCloud(nextUsers);
     }
+  };
+
+  // Handler para salvar personalizações do Administrador de forma atômica
+  const handleSaveAdminCustomizations = (updated: {
+    user: UserProfile;
+    theme: SystemThemeConfig;
+    websiteConfig: WebsiteConfig;
+    tenant?: Partial<TenantAgency>;
+  }) => {
+    setCurrentUser(updated.user);
+    try {
+      sessionStorage.setItem('acertgo_session_user', JSON.stringify(updated.user));
+    } catch {}
+
+    setThemeConfig(updated.theme);
+    setWebsiteConfig(updated.websiteConfig);
+
+    if (updated.tenant && activeTenant) {
+      handleSaveTenant({
+        ...updated.tenant,
+        id: activeTenant.id
+      });
+    }
+
+    handleSendNotification({
+      title: 'Personalizações Fixadas com Sucesso',
+      message: 'As cores, logotipos e dados do sistema CRM e do site CMS foram salvos e sincronizados.',
+      category: 'PLATAFORMA_SISTEMA',
+      priority: 'BAIXA',
+      channels: ['IN_APP'],
+      targetAudience: 'TODA_IMOBILIARIA',
+      senderName: 'Sistema',
+      senderRole: 'MASTER_ADMIN',
+      isRead: false
+    });
   };
 
   const handleDeleteTenant = (tenantId: string) => {
@@ -2358,6 +2437,36 @@ export default function App() {
     );
   }
 
+  // 1.1 Rota Pública do Site Oficial / CMS da Imobiliária (Aberto em nova aba independente sem travar em login)
+  if (isOfficialWebsiteRouteUrl()) {
+    return (
+      <WebsiteStandalonePageView
+        properties={properties}
+        websiteConfig={websiteConfig}
+        currentTenant={activeTenant}
+        onNewLead={(leadData) => {
+          handleCreateLead({
+            name: leadData.name,
+            phone: leadData.phone,
+            email: leadData.email,
+            interestType: 'COMPRA',
+            budgetMin: 500000,
+            budgetMax: 2000000,
+            source: 'SITE_OFICIAL',
+            tags: ['Lead Site Oficial', 'Captação Web'],
+            lastMessageText: leadData.interest
+          });
+        }}
+        onReturnToCrm={() => {
+          try {
+            window.location.hash = '';
+          } catch {}
+          window.location.reload();
+        }}
+      />
+    );
+  }
+
   // 2. Guardião de Autenticação Segura (Liberar acesso interno somente após login; sem credenciais salvas em disco)
   if (!isAuthenticated) {
     return (
@@ -2473,6 +2582,7 @@ export default function App() {
         principalManagerName={activeTenant?.ownerName}
         principalManagerEmail={activeTenant?.ownerEmail}
         onDownloadDatabase={handleDownloadTenantDatabase}
+        onOpenAdminProfileCustomizer={() => setShowAdminProfileCustomizer(true)}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
@@ -3208,6 +3318,27 @@ export default function App() {
           onDismiss={() => setInstanceTransition(null)}
         />
       )}
+
+      {/* Modal de Personalizações do Administrador (Perfil, Cores e Logotipos do Sistema e CMS) */}
+      {showAdminProfileCustomizer && (
+        <AdminProfileCustomizerModal
+          isOpen={showAdminProfileCustomizer}
+          onClose={() => setShowAdminProfileCustomizer(false)}
+          currentUser={currentUser}
+          currentTheme={themeConfig}
+          currentWebsiteConfig={websiteConfig}
+          currentTenant={activeTenant}
+          onSaveAll={handleSaveAdminCustomizations}
+        />
+      )}
+
+      {/* Ícone e Painel Flutuante Permanente de Ajuda Contextual do Módulo */}
+      <ContextualHelpWidget
+        currentTab={currentTab}
+        onNavigateTab={handleNavigateTab}
+        tenantName={activeTenant?.tradeName}
+        supportPhone={themeConfig.supportPhone || '(11) 98844-3322'}
+      />
     </div>
   );
 }

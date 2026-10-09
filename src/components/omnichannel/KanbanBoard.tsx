@@ -12,8 +12,7 @@ import {
   GripVertical,
   Clock,
   MessageSquare,
-  Radar,
-  AlertTriangle
+  Radar
 } from 'lucide-react';
 import { Lead, LeadFunnelStage, RealEstateProperty } from '../../types/crm';
 import { LeadPropertyRadarModal } from '../leads/LeadPropertyRadarModal';
@@ -36,12 +35,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onSelectPropertyForLead,
   onScheduleVisit,
 }) => {
+  const { checkLeadSla, breachedCount } = useLeadSlaMonitor(leads);
   const [lossModalLeadId, setLossModalLeadId] = useState<string | null>(null);
   const [lossReasonText, setLossReasonText] = useState('');
   const [leadForRadar, setLeadForRadar] = useState<Lead | null>(null);
-  
-  // Hook de monitoramento de SLA de 30 minutos para NOVO_LEAD
-  const { getLeadSlaInfo, slaWarningCount } = useLeadSlaMonitor(leads, 30);
   
   // Drag & drop state
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
@@ -151,13 +148,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <div className={`p-3 border-t-4 ${col.color} bg-white rounded-t-2xl border-b border-slate-200/80 flex items-center justify-between shadow-2xs`}>
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-xs font-bold text-slate-900 truncate">{col.label}</span>
-                  {col.stage === 'NOVO_LEAD' && colLeads.some(l => getLeadSlaInfo(l)?.isBreached) && (
+                  {col.stage === 'NOVO_LEAD' && breachedCount > 0 && (
                     <span 
-                      className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 animate-pulse"
-                      title="Existem leads nesta coluna há mais de 30 minutos sem interação"
+                      className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-400 text-amber-950 flex items-center gap-1 animate-pulse border border-amber-500/50 shadow-2xs"
+                      title={`${breachedCount} lead(s) aguardando há mais de 30 minutos sem interação`}
                     >
-                      <AlertTriangle className="w-2.5 h-2.5 text-amber-600 shrink-0" />
-                      <span>SLA 30m+</span>
+                      ⚠️ {breachedCount} +30m
                     </span>
                   )}
                 </div>
@@ -182,6 +178,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 ) : (
                   colLeads.map((lead) => {
                     const isBeingDragged = draggedLeadId === lead.id;
+                    const slaStatus = checkLeadSla(lead);
                     const followUps = lead.followUps || [];
                     const pendingFollowUps = followUps.filter(f => f.status === 'PENDENTE' || f.status === 'ATRASADO');
                     const overdueFollowUp = pendingFollowUps.find(f => {
@@ -227,21 +224,33 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           </div>
                         )}
 
-                        {/* Alerta Visual de SLA (Mais de 30 minutos em NOVO_LEAD sem interação) */}
-                        {col.stage === 'NOVO_LEAD' && getLeadSlaInfo(lead)?.isBreached && (
-                          <div 
-                            className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs text-[10px] font-bold animate-pulse"
-                            title="Lead no status 'Novo Lead' há mais de 30 minutos sem contato ou interação registrada"
-                          >
-                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                            <span>Alerta SLA: {getLeadSlaInfo(lead)?.formattedTime} sem contato</span>
-                          </div>
-                        )}
-
                         {/* Budget */}
                         <div className="text-[11px] text-slate-600 font-mono">
                           R$ {lead.budgetMin.toLocaleString('pt-BR')} ~ {lead.budgetMax.toLocaleString('pt-BR')}
                         </div>
+
+                        {/* SLA Breach Alert Badge (>30 min) */}
+                        {col.stage === 'NOVO_LEAD' && slaStatus.isBreached && (
+                          <div className="flex items-center justify-between gap-1 p-2 bg-amber-50 rounded-xl border border-amber-300 text-amber-950 shadow-2xs animate-pulse">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span className="text-[10px] font-extrabold truncate">
+                                ⚠️ SLA +30m: Sem contato há {slaStatus.timeFormatted}
+                              </span>
+                            </div>
+                            <a
+                              href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}?text=Ol%C3%A1%20${encodeURIComponent(lead.name)},%20sou%20da%20imobili%C3%A1ria%20e%20vi%20seu%20interesse!`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[9px] font-black flex items-center gap-1 shrink-0 transition-colors shadow-2xs"
+                              title="Iniciar primeiro contato via WhatsApp"
+                            >
+                              <Phone className="w-2.5 h-2.5" />
+                              <span>Chamar</span>
+                            </a>
+                          </div>
+                        )}
 
                         {/* Follow-up status pill & Custody Badge */}
                         <div className="flex flex-wrap items-center gap-1">

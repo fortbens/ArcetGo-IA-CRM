@@ -192,6 +192,97 @@ export const WebsiteTemplatePreview: React.FC<WebsiteTemplatePreviewProps> = ({
   const months = calcYears * 12;
   const estimatedInstallment = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
 
+  const renderHeaderLogo = (theme: 'DARK' | 'LIGHT' | 'EMERALD' | 'HERITAGE') => {
+    const logoHeightClass = 
+      config.logoSize === 'PEQUENO' ? 'max-h-7 max-w-[130px]' :
+      config.logoSize === 'GRANDE' ? 'max-h-14 max-w-[240px]' :
+      'max-h-10 max-w-[190px]';
+
+    if (config.logoUrl) {
+      return (
+        <div className="flex items-center gap-2">
+          <img 
+            src={config.logoUrl} 
+            alt={config.siteName} 
+            className={`${logoHeightClass} object-contain rounded`}
+          />
+          {config.logoSize === 'PEQUENO' && (
+            <span className={`text-xs font-bold ${theme === 'DARK' ? 'text-white' : 'text-slate-900'}`}>
+              {config.siteName}
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    switch (theme) {
+      case 'DARK':
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-[#D4AF37] to-[#F3E5AB] flex items-center justify-center text-black font-serif font-black text-lg">
+              {config.siteName?.charAt(0) || 'A'}
+            </div>
+            <div>
+              <span className="text-base font-serif font-bold tracking-widest text-[#F8FAFC] uppercase block leading-none">
+                {config.siteName}
+              </span>
+              <span className="text-[10px] tracking-wider text-[#D4AF37] uppercase font-mono">
+                Exclusive Real Estate • CRECI {config.creci}
+              </span>
+            </div>
+          </div>
+        );
+      case 'EMERALD':
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold">
+              {config.siteName?.charAt(0) || '✓'}
+            </div>
+            <div>
+              <span className="text-base font-extrabold tracking-tight text-slate-900">
+                {config.siteName}
+              </span>
+              <span className="text-[10px] text-emerald-600 font-bold block">
+                Aluguel Sem Fiador • Análise em 15min
+              </span>
+            </div>
+          </div>
+        );
+      case 'HERITAGE':
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full border-2 border-[#0F766E] flex items-center justify-center text-[#0F766E] font-bold text-lg">
+              {config.siteName?.charAt(0) || '⚜'}
+            </div>
+            <div>
+              <span className="text-lg font-bold tracking-tight text-[#1C1917] font-serif">
+                {config.siteName}
+              </span>
+              <span className="text-[10px] text-[#0F766E] font-sans font-bold block">
+                Desde 1998 • Mais de 3.500 Famílias Atendidas
+              </span>
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+              {config.siteName?.charAt(0) || 'A'}
+            </div>
+            <div>
+              <span className="text-base font-bold tracking-tight text-slate-900 leading-tight">
+                {config.siteName}
+              </span>
+              <span className="text-[10px] text-blue-600 font-medium block">
+                CRECI {config.creci} • Lançamentos & Vendas
+              </span>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Device View Selector Bar */}
@@ -249,19 +340,7 @@ export const WebsiteTemplatePreview: React.FC<WebsiteTemplatePreviewProps> = ({
             <div className="bg-[#0B0F19] text-slate-100 font-sans selection:bg-[#D4AF37] selection:text-black">
               {/* Header VIP */}
               <header className="border-b border-slate-800/80 px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 bg-[#0B0F19]/90 backdrop-blur-md z-20">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-[#D4AF37] to-[#F3E5AB] flex items-center justify-center text-black font-serif font-black text-lg">
-                    A
-                  </div>
-                  <div>
-                    <span className="text-base font-serif font-bold tracking-widest text-[#F8FAFC] uppercase block leading-none">
-                      {config.siteName}
-                    </span>
-                    <span className="text-[10px] tracking-wider text-[#D4AF37] uppercase font-mono">
-                      Exclusive Real Estate • CRECI {config.creci}
-                    </span>
-                  </div>
-                </div>
+                {renderHeaderLogo('DARK')}
 
                 <div className="hidden md:flex items-center gap-6 text-xs text-slate-300 tracking-wider uppercase font-medium">
                   <span className="hover:text-[#D4AF37] cursor-pointer transition-colors">Mansões</span>
@@ -403,19 +482,7 @@ export const WebsiteTemplatePreview: React.FC<WebsiteTemplatePreviewProps> = ({
             <div className="bg-slate-50 text-slate-900 font-sans">
               {/* Header Modern Urban */}
               <header className="bg-white border-b border-slate-200 px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                    A
-                  </div>
-                  <div>
-                    <span className="text-base font-bold tracking-tight text-slate-900 leading-tight">
-                      {config.siteName}
-                    </span>
-                    <span className="text-[10px] text-blue-600 font-medium block">
-                      CRECI {config.creci} • Lançamentos & Vendas
-                    </span>
-                  </div>
-                </div>
+                {renderHeaderLogo('LIGHT')}
 
                 <div className="hidden sm:flex items-center gap-4 text-xs font-semibold text-slate-600">
                   <span className="text-blue-600">Lançamentos</span>
@@ -591,19 +658,7 @@ export const WebsiteTemplatePreview: React.FC<WebsiteTemplatePreviewProps> = ({
           {selectedTemplateId === 'FAST_RENT' && (
             <div className="bg-white text-slate-900 font-sans">
               <header className="border-b border-emerald-100 px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-xs z-20">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold">
-                    ✓
-                  </div>
-                  <div>
-                    <span className="text-base font-extrabold tracking-tight text-slate-900">
-                      {config.siteName}
-                    </span>
-                    <span className="text-[10px] text-emerald-600 font-bold block">
-                      Aluguel Sem Fiador • Análise em 15min
-                    </span>
-                  </div>
-                </div>
+                {renderHeaderLogo('EMERALD')}
 
                 <div className="flex items-center gap-2">
                   <button className="px-3.5 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors">
@@ -703,19 +758,7 @@ export const WebsiteTemplatePreview: React.FC<WebsiteTemplatePreviewProps> = ({
           {selectedTemplateId === 'HERITAGE_TRUST' && (
             <div className="bg-[#FDFBF7] text-[#1C1917] font-serif">
               <header className="border-b border-[#E7E5E4] px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-xs z-20">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full border-2 border-[#0F766E] flex items-center justify-center text-[#0F766E] font-bold text-lg">
-                    ⚜
-                  </div>
-                  <div>
-                    <span className="text-lg font-bold tracking-tight text-[#1C1917] font-serif">
-                      {config.siteName}
-                    </span>
-                    <span className="text-[10px] text-[#0F766E] font-sans font-bold block">
-                      Desde 1998 • Mais de 3.500 Famílias Atendidas
-                    </span>
-                  </div>
-                </div>
+                {renderHeaderLogo('HERITAGE')}
 
                 <div className="flex items-center gap-3 text-xs font-sans">
                   <span className="hidden sm:inline font-bold text-slate-700">CRECI Jurídico: {config.creci}</span>

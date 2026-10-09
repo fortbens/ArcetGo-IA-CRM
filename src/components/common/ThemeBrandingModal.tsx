@@ -742,7 +742,7 @@ export const ThemeBrandingModal: React.FC<ThemeBrandingModalProps> = ({
                           Clique aqui para enviar o arquivo de logotipo
                         </div>
                         <div className="text-[11px] text-slate-500">
-                          Formatos recomendados: PNG transparente ou SVG (250 × 60 px, máx 2MB)
+                          Formatos recomendados: PNG transparente, SVG ou JPG (Sem limite de tamanho - otimização automática)
                         </div>
                       </div>
                     )}

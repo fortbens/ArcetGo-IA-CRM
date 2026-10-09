@@ -24,6 +24,7 @@ import { Lead, LeadFunnelStage, RealEstateProperty, LeadAiScoring } from '../../
 import { LeadPropertyRadarModal } from '../leads/LeadPropertyRadarModal';
 import { LeadIntelligenceModal } from '../leads/LeadIntelligenceModal';
 import { analyzeLeadScoringWithGemini, batchAnalyzeLeadsScoringWithGemini } from '../../services/aiService';
+import { useLeadSlaMonitor } from '../../hooks/useLeadSlaMonitor';
 
 interface LeadsListViewProps {
   leads: Lead[];
@@ -48,6 +49,7 @@ export const LeadsListView: React.FC<LeadsListViewProps> = ({
   onUpdateLead,
   onOpenWhatsAppDesk,
 }) => {
+  const { checkLeadSla, breachedCount } = useLeadSlaMonitor(leads);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('TODOS');
   const [sortBy, setSortBy] = useState<'SCORE_DESC' | 'SCORE_ASC' | 'RECENT' | 'NAME'>('SCORE_DESC');
@@ -154,7 +156,7 @@ export const LeadsListView: React.FC<LeadsListViewProps> = ({
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
-  const getStatusBadge = (stage: LeadFunnelStage) => {
+  const getStatusBadge = (stage: LeadFunnelStage, lead?: Lead) => {
     switch (stage) {
       case 'FECHAMENTO_GANHO':
         return (
@@ -168,12 +170,24 @@ export const LeadsListView: React.FC<LeadsListViewProps> = ({
             1º Contato
           </span>
         );
-      case 'NOVO_LEAD':
+      case 'NOVO_LEAD': {
+        const slaStatus = lead ? checkLeadSla(lead) : null;
         return (
-          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 whitespace-nowrap">
-            Novo Cliente
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 whitespace-nowrap">
+              Novo Cliente
+            </span>
+            {slaStatus?.isBreached && (
+              <span 
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-300 text-amber-950 border border-amber-400 animate-pulse whitespace-nowrap shadow-2xs"
+                title={`Lead aguardando primeiro contato há ${slaStatus.timeFormatted}`}
+              >
+                ⚠️ SLA +30m ({slaStatus.timeFormatted})
+              </span>
+            )}
+          </div>
         );
+      }
       case 'QUALIFICACAO':
         return (
           <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 whitespace-nowrap">
@@ -480,7 +494,7 @@ export const LeadsListView: React.FC<LeadsListViewProps> = ({
 
                       {/* Status Badge */}
                       <td className="py-3.5 sm:py-4 px-3 sm:px-4 whitespace-nowrap">
-                        {getStatusBadge(lead.stage)}
+                        {getStatusBadge(lead.stage, lead)}
                       </td>
 
                       {/* Follow-up Column */}

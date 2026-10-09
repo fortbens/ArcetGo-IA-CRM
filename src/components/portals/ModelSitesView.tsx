@@ -232,11 +232,24 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
 
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
             <button
+              onClick={() => {
+                const previewUrl = `${window.location.origin}${window.location.pathname}#/site-oficial?tenant=${encodeURIComponent(currentTenant?.id || 'tenant_matriz_sp')}`;
+                window.open(previewUrl, '_blank');
+                showToast('🚀 Abrindo Site Oficial em nova aba do navegador!');
+              }}
+              className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95"
+              title="Abrir o site oficial em uma nova aba independente do navegador"
+            >
+              <ExternalLink className="w-4 h-4 text-emerald-200" />
+              <span>Abrir Site em Nova Aba</span>
+            </button>
+
+            <button
               onClick={() => setShowFullscreenPreview(true)}
               className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
             >
               <Eye className="w-4 h-4" />
-              <span>Ver Site em Tela Cheia</span>
+              <span>Ver no Sistema</span>
             </button>
 
             <button
@@ -260,7 +273,17 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
             <span className="text-slate-400 mx-2">•</span>
             <span className="text-blue-700 font-bold">Template: {activeTemplate.name}</span>
             <span className="text-slate-400 mx-2">•</span>
-            <span className="text-emerald-700 font-bold font-mono">https://{customDomainInput}</span>
+            <button
+              onClick={() => {
+                const previewUrl = `${window.location.origin}${window.location.pathname}#/site-oficial?tenant=${encodeURIComponent(currentTenant?.id || 'tenant_matriz_sp')}`;
+                window.open(previewUrl, '_blank');
+              }}
+              className="text-emerald-700 hover:text-emerald-900 underline font-bold font-mono inline-flex items-center gap-1 cursor-pointer"
+              title="Abrir URL do site em nova aba"
+            >
+              <span>https://{customDomainInput}</span>
+              <ExternalLink className="w-3 h-3 text-emerald-600" />
+            </button>
             <span className="px-2 py-0.5 ml-2 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
               SSL SEGURO
             </span>
@@ -296,6 +319,46 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
                 <span>{publishSuccess ? 'Publicado!' : 'Publicar Alterações no Site'}</span>
               </>
             )}
+          </button>
+        </div>
+      </div>
+
+      {/* Informações de Apontamento Real e Estoque Integrado */}
+      <div className="p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200/80 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+            📡
+          </div>
+          <div>
+            <div className="font-bold text-slate-900 flex items-center gap-2">
+              <span>Apontamento de Domínio Próprio da Imobiliária</span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.2 rounded-full">
+                Operação Real
+              </span>
+            </div>
+            <div className="text-slate-600 mt-0.5">
+              Entrada CNAME: <code className="bg-white px-1.5 py-0.5 rounded border border-blue-200 text-blue-800 font-mono font-bold">www</code> ou <code className="bg-white px-1.5 py-0.5 rounded border border-blue-200 text-blue-800 font-mono font-bold">imoveis</code>
+              <span className="mx-1.5 text-slate-400">➔</span>
+              Destino Servidor: <code className="bg-white px-1.5 py-0.5 rounded border border-blue-200 text-emerald-800 font-mono font-bold">sites.acertgo.com.br</code>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-slate-600 text-right">
+            <span className="text-[11px] block text-slate-500">Estoque Integrado:</span>
+            <strong className="text-blue-700 font-bold text-xs">{properties.length} imóveis sincronizados</strong>
+          </div>
+          <button
+            onClick={() => {
+              const previewUrl = `${window.location.origin}${window.location.pathname}#/site-oficial?tenant=${encodeURIComponent(currentTenant?.id || 'tenant_matriz_sp')}`;
+              window.open(previewUrl, '_blank');
+              showToast('🚀 Abrindo Site Oficial em nova aba!');
+            }}
+            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center gap-1.5 transition-colors shadow-xs active:scale-95 cursor-pointer"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Abrir Nova Aba</span>
           </button>
         </div>
       </div>
@@ -644,12 +707,19 @@ export const ModelSitesView: React.FC<ModelSitesViewProps> = ({
           config={websiteConfig}
           onSaveConfig={async (updated) => {
             setWebsiteConfig(updated);
+            if (currentTenant && onSaveTenant) {
+              onSaveTenant({
+                id: currentTenant.id,
+                logoUrl: updated.logoUrl,
+                tradeName: updated.siteName
+              });
+            }
             try {
               await saveWebsiteConfigToCloud(updated);
-              showToast('✅ Fotos da equipe e configurações do site sincronizadas na nuvem!');
+              showToast('✅ Logotipo, fotos da equipe e configurações do site sincronizadas com sucesso!');
             } catch (err) {
               console.warn('Erro ao sincronizar website:', err);
-              showToast('Configurações salvas no dispositivo.');
+              showToast('Configurações salvas localmente.');
             }
             setShowCmsModal(false);
           }}

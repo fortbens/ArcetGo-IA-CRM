@@ -7,10 +7,17 @@ deployment:
     - /bin/mkdir -p ${ROOT_DIR}
     - /bin/mkdir -p ${CRM_DIR}
 
-    # 2. Implantação da Landing Page Institucional na Raiz (acertgo.com.br)
+    # 2. Implantação da Landing Page Institucional na Raiz (fortbens.com.br / acertgo.com.br)
     # Impede absolutamente o erro "Index of /" e fornece o portal institucional oficial
-    - /bin/cp root-site/index.html ${ROOT_DIR}/index.html 2>/dev/null || true
-    - /bin/cp root-site/.htaccess ${ROOT_DIR}/.htaccess 2>/dev/null || true
+    - |
+      if [ -d "raiz-dist" ] && [ "$(ls -A raiz-dist 2>/dev/null)" ]; then
+        /bin/cp -R raiz-dist/* ${ROOT_DIR}/ 2>/dev/null || true
+      elif [ -d "dist-root" ] && [ "$(ls -A dist-root 2>/dev/null)" ]; then
+        /bin/cp -R dist-root/* ${ROOT_DIR}/ 2>/dev/null || true
+      else
+        /bin/cp root-site/index.html ${ROOT_DIR}/index.html 2>/dev/null || true
+        /bin/cp root-site/.htaccess ${ROOT_DIR}/.htaccess 2>/dev/null || true
+      fi
 
     # 3. Configura o .htaccess exclusivo do CRM (SPA, HTTPS e no-cache estrito)
     - /bin/cp public/.htaccess-crm ${CRM_DIR}/.htaccess 2>/dev/null || true

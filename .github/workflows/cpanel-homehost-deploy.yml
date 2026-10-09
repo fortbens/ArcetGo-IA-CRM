@@ -42,10 +42,11 @@ jobs:
 
       - name: Preparar Pacotes de Deploy (Raiz Institucional e Subdomínio CRM)
         run: |
-          # 1. Garantir que dist-root tenha a landing page institucional e o .htaccess anti-Index-of
-          rm -rf dist-root
-          mkdir -p dist-root
+          # 1. Garantir que dist-root e raiz-dist tenham a landing page institucional e o .htaccess anti-Index-of
+          rm -rf dist-root raiz-dist
+          mkdir -p dist-root raiz-dist
           cp -r root-site/. dist-root/
+          cp -r root-site/. raiz-dist/
 
           # 2. Garantir que dist-crm tenha a aplicação completa do CRM e o .htaccess dedicado
           rm -rf dist-crm

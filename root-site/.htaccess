@@ -28,7 +28,7 @@ FileETag None
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # Se acessar rotas operacionais do CRM na raiz, redirecionar com 301 para o subdomínio aicrm
-  RewriteRule ^(crm|login|painel|app)/?$ https://aicrm.acertgo.com.br/ [R=301,L]
+  RewriteRule ^(crm|login|painel|app|vendas|espelho|espelho-360)/?$ https://aicrm.acertgo.com.br/ [R=301,L]
 
   # Se o arquivo físico ou diretório existir, serve diretamente
   RewriteCond %{REQUEST_FILENAME} -f [OR]

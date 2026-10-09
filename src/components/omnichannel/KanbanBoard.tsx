@@ -12,10 +12,12 @@ import {
   GripVertical,
   Clock,
   MessageSquare,
-  Radar
+  Radar,
+  AlertTriangle
 } from 'lucide-react';
 import { Lead, LeadFunnelStage, RealEstateProperty } from '../../types/crm';
 import { LeadPropertyRadarModal } from '../leads/LeadPropertyRadarModal';
+import { useLeadSlaMonitor } from '../../hooks/useLeadSlaMonitor';
 
 interface KanbanBoardProps {
   leads: Lead[];
@@ -37,6 +39,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [lossModalLeadId, setLossModalLeadId] = useState<string | null>(null);
   const [lossReasonText, setLossReasonText] = useState('');
   const [leadForRadar, setLeadForRadar] = useState<Lead | null>(null);
+  
+  // Hook de monitoramento de SLA de 30 minutos para NOVO_LEAD
+  const { getLeadSlaInfo, slaWarningCount } = useLeadSlaMonitor(leads, 30);
   
   // Drag & drop state
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
@@ -146,6 +151,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <div className={`p-3 border-t-4 ${col.color} bg-white rounded-t-2xl border-b border-slate-200/80 flex items-center justify-between shadow-2xs`}>
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-xs font-bold text-slate-900 truncate">{col.label}</span>
+                  {col.stage === 'NOVO_LEAD' && colLeads.some(l => getLeadSlaInfo(l)?.isBreached) && (
+                    <span 
+                      className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 animate-pulse"
+                      title="Existem leads nesta coluna há mais de 30 minutos sem interação"
+                    >
+                      <AlertTriangle className="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                      <span>SLA 30m+</span>
+                    </span>
+                  )}
                 </div>
                 <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full tabular-nums ${col.badgeColor}`}>
                   {colLeads.length}
@@ -210,6 +224,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           <div className="text-[11px] text-slate-600 truncate flex items-center gap-1">
                             <Building className="w-3 h-3 text-slate-400 shrink-0" />
                             <span className="truncate">{lead.propertyOfInterestTitle}</span>
+                          </div>
+                        )}
+
+                        {/* Alerta Visual de SLA (Mais de 30 minutos em NOVO_LEAD sem interação) */}
+                        {col.stage === 'NOVO_LEAD' && getLeadSlaInfo(lead)?.isBreached && (
+                          <div 
+                            className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs text-[10px] font-bold animate-pulse"
+                            title="Lead no status 'Novo Lead' há mais de 30 minutos sem contato ou interação registrada"
+                          >
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Alerta SLA: {getLeadSlaInfo(lead)?.formattedTime} sem contato</span>
                           </div>
                         )}
 

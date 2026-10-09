@@ -1,105 +1,72 @@
 # Configuração e Publicação no cPanel da HomeHost
-## Arquitetura de Hospedagem Segura
+## Arquitetura de Hospedagem Segura (Raiz e Subdomínio)
 
-- **Site Institucional Fortbens (Domínio Principal / Raiz):** Pasta `public_html/` (Protegido — NUNCA sobrescrever!).
-- **Plataforma CRM / ERP AcertGo (Subdomínio Exclusivo):** `https://aicrm.acertgo.com.br` -> Pasta `public_html/aicrm/`.
-
-> ⚠️ **ATENÇÃO CRÍTICA DE DEPLOY:**
-> O site institucional da **Fortbens** reside na raiz (`public_html/`). 
-> O código do CRM (**AcertGo**) é compilado e enviado **exclusivamente** para a pasta do subdomínio (`public_html/aicrm/`), garantindo que o site da Fortbens na raiz **jamais** seja sobrescrito ou modificado.
+- **Domínio Principal / Raiz (`https://acertgo.com.br`):** Pasta `public_html/` — Contém a Landing Page Institucional Oficial (elimina o erro `Index of /`).
+- **Subdomínio do CRM (`https://aicrm.acertgo.com.br`):** Pasta `public_html/aicrm/` — Contém a plataforma operacional do CRM / ERP AcertGo.
 
 ---
 
-## Como a Aplicação do CRM se Comporta
-1. O CRM AcertGo opera em `https://aicrm.acertgo.com.br` com tela de login, governança multi-tenancy, roleta de corretores, gestão de imóveis, ERP financeiro e esteiras de contratos.
-2. Na raiz (`public_html/`), permanece exclusivamente o site institucional da Fortbens.
-3. Todo o build do CRM é direcionado para `dist-crm/` e deve ser publicado em `public_html/aicrm/`.
+## Como a Estrutura Funciona
+
+1. **Na Raiz (`public_html/`):**
+   - É publicado o `index.html` da landing page institucional e o arquivo `.htaccess`.
+   - O arquivo `.htaccess` possui a diretiva `Options -Indexes`, impedindo que o Apache exiba a listagem de arquivos (`Index of /`).
+   - Apresenta as soluções (Roleta, Espelho 360, Split Fintech, Planos, Calculadora de ROI e FAQ) com botão direto para **"Acessar CRM"** (`https://aicrm.acertgo.com.br`).
+   - Qualquer tentativa de acessar `/crm`, `/login`, `/painel` ou `/app` no domínio principal é automaticamente redirecionada (301) para o subdomínio `aicrm.acertgo.com.br`.
+
+2. **No Subdomínio (`public_html/aicrm/`):**
+   - Opera o sistema completo do CRM (Login, Roleta, Estoque, Split, Vistorias, etc.).
+   - Possui seu próprio `.htaccess` com suporte a SPA routing e controle no-cache estrito.
 
 ---
 
-## Passo a Passo no cPanel da HomeHost
+## Passo a Passo de Implantação no cPanel
 
 ### 1. Criar o Subdomínio no cPanel
-1. Acesse seu painel **cPanel** da HomeHost.
+1. Acesse o painel **cPanel** da HomeHost.
 2. Na seção **Domínios**, clique em **Subdomínios** (ou *Domains*).
 3. Preencha:
    - **Subdomínio:** `aicrm`
-   - **Domínio:** `acertgo.com.br` (ou o domínio da sua empresa)
-   - **Raiz do Documento:** `public_html/aicrm` (pasta dedicada).
+   - **Domínio:** `acertgo.com.br`
+   - **Raiz do Documento:** `public_html/aicrm`
 4. Clique em **Criar**.
 
 ---
 
 ### 2. Apontamento de DNS (Zona DNS)
-No cPanel da HomeHost (ou no Registro.br / Cloudflare, caso utilize DNS externo):
-- **aicrm.acertgo.com.br** (CNAME ou Tipo A) -> Apontando para o IP do servidor HomeHost.
+No cPanel da HomeHost (ou no Registro.br / Cloudflare):
+- **acertgo.com.br** (Tipo A) -> IP do servidor HomeHost
+- **www.acertgo.com.br** (CNAME) -> `acertgo.com.br`
+- **aicrm.acertgo.com.br** (CNAME ou Tipo A) -> Apontando para o IP do servidor HomeHost
 
 ---
 
-### 3. Gerar o Pacote de Produção do CRM
+### 3. Compilar os Pacotes
 No terminal do projeto, execute:
 ```bash
 npm run build
 ```
-Serão geradas as pastas `dist/` e `dist-crm/` com:
-- `index.html` (Aplicação CRM)
-- Pasta `assets/` (arquivos JS e CSS minificados)
-- `.htaccess` (configuração Apache/LiteSpeed dedicada com SPA routing e no-cache estrito)
+O comando gera automaticamente duas pastas prontas:
+1. **`dist-root/`:** Contém o `index.html` institucional e `.htaccess` (para a raiz `public_html/`).
+2. **`dist-crm/`:** Contém a aplicação compilada do CRM e `.htaccess` (para o subdomínio `public_html/aicrm/`).
 
 ---
 
 ### 4. Envio dos Arquivos pelo Gerenciador de Arquivos do cPanel
 1. No cPanel, abra o **Gerenciador de Arquivos**.
-2. Acesse a pasta exclusiva do CRM: **`public_html/aicrm/`** (a pasta do subdomínio criada no Passo 1).
-3. Envie e extraia o conteúdo da pasta `dist-crm/` (ou `dist/`).
-4. **NÃO altere nem envie arquivos para a raiz `public_html/`**, pois ela pertence ao site institucional da Fortbens!
-5. *Nota:* Certifique-se de que o arquivo `.htaccess` esteja presente dentro de `public_html/aicrm/` (ative a opção "Mostrar Arquivos Ocultos / dotfiles" nas configurações da barra superior do Gerenciador de Arquivos).
+2. **Para a Raiz (`public_html/`):**
+   - Acesse a pasta `public_html/`.
+   - Envie os arquivos da pasta **`dist-root/`** (`index.html` e `.htaccess`).
+   - Isso garante que quem acessar `acertgo.com.br` veja a landing page institucional imediatamente, sem a tela `Index of /`.
+3. **Para o Subdomínio (`public_html/aicrm/`):**
+   - Acesse a pasta `public_html/aicrm/`.
+   - Envie e extraia os arquivos da pasta **`dist-crm/`** (`index.html`, pasta `assets/` e `.htaccess`).
+4. *Dica:* Certifique-se de que os arquivos ocultos estão visíveis (no cPanel, clique em "Configurações" no canto superior direito e marque "Mostrar Arquivos Ocultos / dotfiles").
 
 ---
 
-### 5. Ativar o SSL Gratuito (HTTPS)
+### 5. Ativar o Certificado SSL Gratuito (HTTPS)
 1. No cPanel, acesse **Segurança** > **Status do SSL/TLS**.
-2. Verifique se `aicrm.acertgo.com.br` aparece na lista.
+2. Verifique se `acertgo.com.br`, `www.acertgo.com.br` e `aicrm.acertgo.com.br` aparecem na lista.
 3. Clique em **Executar AutoSSL** (*Run AutoSSL*).
-4. O certificado Let's Encrypt / cPanel será emitido gratuitamente em alguns minutos.
-
----
-
-### 6. Como Testar em Ambiente de Desenvolvimento ou Preview
-Para testar a alternância entre os domínios antes de publicar:
-- Testar Página de Vendas: adicione `?domain=sales` ou acesse `/vendas`.
-- Testar CRM: adicione `?domain=aicrm` ou acesse `/`.
-- Dentro do Super Admin, há também o botão **"cPanel HomeHost"** com o guia visual completo.
-
----
-
-## 7. Como Resolver os Erros Comuns ao Clonar Repositório no cPanel
-
-Se ao tentar clonar via **Git™ Version Control** no cPanel você encontrar erros, veja os motivos e soluções:
-
-### Erro A: "destination path '...' already exists and is not an empty directory"
-- **Causa:** O cPanel não permite clonar em uma pasta que já contenha arquivos (ao criar o subdomínio ou na `public_html`, o cPanel cria arquivos automáticos como `cgi-bin`, `.htaccess` ou pastas padrão).
-- **Solução 1 (Recomendada):** No campo **Repository Path** do cPanel, informe um diretório novo que ainda não existe, por exemplo: `repositories/acertgo-crm` (fora da `public_html`).
-- **Solução 2:** Abra o **Gerenciador de Arquivos**, ative "Mostrar arquivos ocultos (dotfiles)" nas configurações da barra superior, e apague qualquer arquivo padrão existente na pasta antes de clonar.
-
-### Erro B: "Authentication failed" / Repositório Privado no GitHub
-- **Causa:** O GitHub não aceita mais a sua senha de login tradicional por segurança.
-- **Solução com Token (PAT):**
-  1. No GitHub, vá em **Settings** > **Developer Settings** > **Personal access tokens (classic)**.
-  2. Gere um token com permissão `repo`.
-  3. No cPanel, no campo **Clone URL**, informe com o token embutido:
-     `https://SEU_TOKEN_AQUI@github.com/SEU_USUARIO/SEU_REPOSITORIO.git`
-- **Solução com Chave SSH:**
-  1. No cPanel, vá em **Acesso SSH** > **Gerenciar Chaves SSH** > **Gerar Nova Chave**.
-  2. Copie a chave pública gerada.
-  3. No GitHub do repositório, vá em **Settings** > **Deploy keys** > **Add deploy key** e cole a chave.
-  4. No cPanel, use a URL SSH: `git@github.com:SEU_USUARIO/SEU_REPOSITORIO.git`.
-
-### Erro C: "Clonei o repositório mas o site não abre" (Lembrete sobre React)
-- **Importante:** A aplicação é desenvolvida em React/Vite. O servidor Apache da hospedagem precisa dos arquivos compilados da pasta **`dist/`** (`index.html`, `assets/`, `.htaccess`). Clonar o código-fonte cru não gera o build automaticamente sem o comando `npm run build`.
-- **A forma mais rápida e 100% garantida (Upload direto via ZIP):**
-  1. Na sua máquina local, execute: `npm run build`
-  2. Compacte o conteúdo gerado na pasta `dist` em um arquivo `dist.zip`.
-  3. No **Gerenciador de Arquivos** do cPanel, faça o upload do `dist.zip` para `public_html` e para `public_html/aicrm` e clique em **Extrair**.
-  4. O sistema entra no ar na hora, sem depender de comandos no servidor!
-
+4. O certificado Let's Encrypt / cPanel será emitido gratuitamente.

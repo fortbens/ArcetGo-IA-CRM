@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <title>AcertGo | Ecossistema CRM, ERP & Fintech Imobiliária</title>
+  <meta name="description" content="Acelere suas vendas imobiliárias com o AcertGo: CRM Omnichannel com Roleta WhatsApp, Espelho de Vendas 360, Split Fintech Automático e Esteira CCA Integrada." />
+
+  <!-- Open Graph / Redes Sociais -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://acertgo.com.br/" />
+  <meta property="og:title" content="AcertGo | Ecossistema CRM/ERP & Fintech Imobiliária" />
+  <meta property="og:description" content="A plataforma definitiva para imobiliárias, loteadoras e corretores de elite. Roleta de Leads, Espelho de Vendas e Split Bancário." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AcertGo | CRM & Fintech Imobiliária" />
+  <meta name="twitter:description" content="Plataforma de alta conversão para imobiliárias e incorporadoras." />
+
+  <!-- Tipografia do Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN com personalização -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#0f172a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    .animate-glow {
+      animation: pulseGlow 6s ease-in-out infinite;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card:hover {
+      border-color: rgba(59, 130, 246, 0.35);
+    }
+    .gradient-border {
+      position: relative;
+    }
+    .gradient-border::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.6), rgba(16,185,129,0.3), rgba(147,51,234,0.4));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Glows decorativos de fundo -->
+  <div class="fixed top-0 left-1/4 w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none animate-glow"></div>
+  <div class="fixed bottom-10 right-1/4 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[140px] pointer-events-none animate-glow" style="animation-delay: 2s;"></div>
+
+  <!-- Header / Barra de Navegação -->
+  <header class="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="https://acertgo.com.br/" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-400 p-0.5 shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+            <span class="font-display font-extrabold text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">A</span>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5">
+            <span class="font-display font-bold text-xl sm:text-2xl text-white tracking-tight">AcertGo</span>
+            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">OS</span>
+          </div>
+          <span class="text-[10px] text-slate-400 tracking-wider uppercase font-semibold">CRM · ERP · Fintech Imobiliária</span>
+        </div>
+      </a>
+
+      <!-- Menu de Links (Desktop) -->
+      <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#solucoes" class="hover:text-white transition-colors">Soluções</a>
+        <a href="#roleta" class="hover:text-white transition-colors">Roleta de Leads</a>
+        <a href="#espelho" class="hover:text-white transition-colors">Espelho 360</a>
+        <a href="#fintech" class="hover:text-white transition-colors">Fintech Split</a>
+        <a href="#calculadora" class="hover:text-white transition-colors">Calculadora ROI</a>
+        <a href="#planos" class="hover:text-white transition-colors">Planos</a>
+        <a href="#faq" class="hover:text-white transition-colors">Dúvidas</a>
+      </nav>
+
+      <!-- Botões de Ação -->
+      <div class="flex items-center gap-3">
+        <a 
+          href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20conhecer%20a%20plataforma%20AcertGo%20para%20minha%20imobili%C3%A1ria." 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-900 border border-slate-800 transition-all"
+        >
+          <span>Falar com Consultor</span>
+        </a>
+
+        <!-- Botão Principal de Entrada no CRM -->
+        <a 
+          href="https://aicrm.acertgo.com.br/" 
+          class="relative group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-600/30 active:scale-95 transition-all overflow-hidden"
+          title="Acessar o Painel Operacional do CRM"
+        >
+          <span class="relative z-10 flex items-center gap-2">
+            <span>Acessar CRM</span>
+            <svg class="w-4 h-4 text-blue-200 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </span>
+          <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none"></div>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-4xl mx-auto">
+        <!-- Badge Destaque -->
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider mb-8">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span>Plataforma Oficial de Alta Performance Imobiliária</span>
+        </div>
+
+        <!-- Título Principal -->
+        <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] mb-6">
+          O Ecossistema Completo de 
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400">
+            Vendas, Gestão & Fintech
+          </span>
+          para Imobiliárias
+        </h1>
+
+        <!-- Subtítulo -->
+        <p class="text-base sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
+          Elimine o caos operacional: Roleta de Leads WhatsApp com distribuição justa, Espelho de Vendas 360 em tempo real, Split bancário de comissões e esteira bancária CCA em uma única solução segura.
+        </p>
+
+        <!-- Ações do Hero -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <a 
+            href="https://aicrm.acertgo.com.br/" 
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-base text-white bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-95"
+          >
+            <span>Entrar na Plataforma CRM</span>
+            <svg class="w-5 h-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+
+          <a 
+            href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20da%20AcertGo." 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl font-bold text-base text-slate-200 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 transition-all"
+          >
+            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.586 1.761.88 2.79.88 3.179 0 5.767-2.587 5.767-5.766.001-3.18-2.587-5.766-5.766-5.766zm9.969 5.766c0 5.519-4.481 10-10 10-1.802 0-3.488-.479-4.945-1.312l-5.055 1.374 1.398-4.952c-.908-1.517-1.429-3.292-1.429-5.187 0-5.519 4.481-10 10-10 5.519 0 10 4.481 10 10z"/>
+            </svg>
+            <span>Agendar Demonstração VIP</span>
+          </a>
+        </div>
+
+        <!-- Indicadores / Prova Social -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-8 border-t border-slate-800/80">
+          <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+            <div class="font-display text-2xl sm:text-3xl font-bold text-white mb-1">+R$ 2.4 Bi</div>
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">VGV Transacionado</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+            <div class="font-display text-2xl sm:text-3xl font-bold text-emerald-400 mb-1">45 Segundos</div>
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Tempo de Atendimento</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+            <div class="font-display text-2xl sm:text-3xl font-bold text-blue-400 mb-1">+350 Imobiliárias</div>
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Operações Ativas</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+            <div class="font-display text-2xl sm:text-3xl font-bold text-purple-400 mb-1">99.9% Uptime</div>
+            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Nuvem Segura cPanel & AWS</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Preview Interativo do Dashboard -->
+      <div class="mt-16 max-w-5xl mx-auto rounded-3xl p-2 sm:p-3 bg-gradient-to-b from-blue-500/20 via-slate-850 to-slate-950 border border-slate-800 shadow-2xl relative">
+        <div class="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800">
+          <div class="px-4 py-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+              <span class="text-xs font-mono text-slate-400 ml-2">aicrm.acertgo.com.br — Painel de Controle</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="text-[11px] font-bold text-emerald-400">Ambiente Operacional Ativo</span>
+            </div>
+          </div>
+
+          <!-- Conteúdo Simulado do CRM -->
+          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950/60">
+            <!-- Box 1 -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-xs text-slate-400 font-semibold mb-1">Funil de Atendimento (Kanban)</div>
+              <div class="text-2xl font-bold text-white mb-2">128 Leads Ativos</div>
+              <div class="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
+                <span>↑ 24% esta semana</span>
+                <span class="text-slate-500">· Roleta WhatsApp</span>
+              </div>
+            </div>
+
+            <!-- Box 2 -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-xs text-slate-400 font-semibold mb-1">Espelho de Vendas 360</div>
+              <div class="text-2xl font-bold text-emerald-400 mb-2">94% Comercializado</div>
+              <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                <span>Reserva em tempo real</span>
+              </div>
+            </div>
+
+            <!-- Box 3 -->
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-xs text-slate-400 font-semibold mb-1">Fintech Split de Comissões</div>
+              <div class="text-2xl font-bold text-blue-400 mb-2">R$ 148.200,00</div>
+              <div class="flex items-center gap-1.5 text-xs text-blue-300">
+                <span>Divisão bancária automática</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Seção 1: Soluções Integradas -->
+  <section id="solucoes" class="py-24 bg-slate-900/50 border-t border-b border-slate-800/80 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3">Tecnologia Especializada</h2>
+        <h3 class="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Tudo que sua imobiliária precisa para liderar a sua região
+        </h3>
+        <p class="text-slate-400 text-sm sm:text-base">
+          Projetado de ponta a ponta para resolver as dores reais do dia a dia imobiliário: perda de leads por demora no retorno, conflitos de comissões e desorganização de estoque.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        <!-- Card 1: Roleta de Leads -->
+        <div id="roleta" class="glass-card rounded-2xl p-6 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-5 font-bold text-xl">
+            ⚡
+          </div>
+          <h4 class="text-xl font-bold text-white mb-2">Roleta de Leads WhatsApp</h4>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Distribua clientes do portal, site ou Instagram automaticamente para os corretores de plantão com controle rigoroso de SLA. Se o corretor não responder em 5 minutos, o lead passa para o próximo.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2">✓ Atendimento em menos de 1 minuto</li>
+            <li class="flex items-center gap-2">✓ Fim das disputas no salão de vendas</li>
+            <li class="flex items-center gap-2">✓ Painel de TV 16:9 para o plantão</li>
+          </ul>
+        </div>
+
+        <!-- Card 2: Espelho 360 -->
+        <div id="espelho" class="glass-card rounded-2xl p-6 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-5 font-bold text-xl">
+            🏢
+          </div>
+          <h4 class="text-xl font-bold text-white mb-2">Espelho de Vendas 360</h4>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Mapa interativo de lotes e torres de lançamentos com status em tempo real (Disponível, Reservado, Vendido). Permite reservas instantâneas diretamente pelo celular do corretor.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2">✓ Evita duplicidade de vendas</li>
+            <li class="flex items-center gap-2">✓ Tabela de preços e condições sempre atualizadas</li>
+            <li class="flex items-center gap-2">✓ QR Placas nos imóveis e estandes</li>
+          </ul>
+        </div>
+
+        <!-- Card 3: Fintech Split -->
+        <div id="fintech" class="glass-card rounded-2xl p-6 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-5 font-bold text-xl">
+            💳
+          </div>
+          <h4 class="text-xl font-bold text-white mb-2">Fintech Split de Comissões</h4>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Motor financeiro que automatiza a divisão de honorários no momento do pagamento: parcela da imobiliária, captação, corretor e gerente distribuídas sem bi-tributação.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2">✓ Emissão de boletos bancários integrados</li>
+            <li class="flex items-center gap-2">✓ Recibos e relatórios para o financeiro</li>
+            <li class="flex items-center gap-2">✓ Conformidade fiscal total (DIMOB)</li>
+          </ul>
+        </div>
+
+        <!-- Card 4: Esteira CCA -->
+        <div class="glass-card rounded-2xl p-6 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mb-5 font-bold text-xl">
+            🏦
+          </div>
+          <h4 class="text-xl font-bold text-white mb-2">Esteira Bancária (CCA)</h4>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Simulador de financiamento e acompanhamento das etapas de aprovação de crédito na Caixa Econômica, Itaú, Bradesco e Santander sem sair do CRM.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2">✓ Notificações automáticas ao comprador</li>
+            <li class="flex items-center gap-2">✓ Aumento comprovado no índice de aprovação</li>
+            <li class="flex items-center gap-2">✓ Gestão documental segura</li>
+          </ul>
+        </div>
+
+        <!-- Card 5: Vistorias e Chaves -->
+        <div class="glass-card rounded-2xl p-6 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mb-5 font-bold text-xl">
+            🔑
+          </div>
+          <h4 class="text-xl font-bold text-white mb-2">Vistorias & Gestão de Chaves</h4>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Controle biométrico e por assinatura da retirada e devolução de chaves por corretores ou clientes, com laudo fotográfico e vistoria digital completa de locação.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2">✓ Rastreio GPS do itinerário de visitas</li>
+            <li class="flex items-center gap-2">✓ Assinatura eletrônica com validade jurídica</li>
+            <li class="flex items-center gap-2">✓ Acervo fotográfico na nuvem</li>
+          </ul>
+        </div>
+
+        <!-- Card 6: Multi-Tenancy & Segurança -->
+        <div class="glass-card rounded-2xl p-6 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center mb-5 font-bold text-xl">
+            🛡️
+          </div>
+          <h4 class="text-xl font-bold text-white mb-2">Isolamento Multi-Tenancy</h4>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Sua imobiliária opera em um ambiente 100% blindado e exclusivo. Os dados da sua carteira pertencem unicamente a você, com backup instantâneo para download em 1 clique.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-2">
+            <li class="flex items-center gap-2">✓ Botão de download do banco de dados</li>
+            <li class="flex items-center gap-2">✓ Criptografia de ponta a ponta</li>
+            <li class="flex items-center gap-2">✓ Subdomínio próprio (aicrm.acertgo.com.br)</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Seção 2: Calculadora de ROI Interativa -->
+  <section id="calculadora" class="py-24 relative overflow-hidden">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 border border-blue-500/30 shadow-2xl">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Simule o Retorno</span>
+          <h3 class="font-display text-3xl sm:text-4xl font-extrabold text-white mt-1">
+            Quanto sua Imobiliária Deixa de Ganhar sem o AcertGo?
+          </h3>
+          <p class="text-slate-400 text-sm mt-2">
+            Ajuste os parâmetros abaixo e veja a estimativa de ganho financeiro mensal com a aceleração da Roleta e do Split.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          
+          <!-- Controles / Sliders -->
+          <div class="space-y-6">
+            <div>
+              <div class="flex justify-between text-sm font-semibold mb-2">
+                <span class="text-slate-300">Número de Corretores:</span>
+                <span id="labelBrokers" class="text-blue-400 font-bold text-base">12 corretores</span>
+              </div>
+              <input 
+                id="rangeBrokers" 
+                type="range" 
+                min="2" 
+                max="80" 
+                value="12" 
+                class="w-full accent-blue-500 bg-slate-800 rounded-lg h-2 cursor-pointer"
+                oninput="updateRoiCalc()"
+              />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-sm font-semibold mb-2">
+                <span class="text-slate-300">VGV Médio Mensal Vendido:</span>
+                <span id="labelVgv" class="text-emerald-400 font-bold text-base">R$ 2.500.000</span>
+              </div>
+              <input 
+                id="rangeVgv" 
+                type="range" 
+                min="300000" 
+                max="20000000" 
+                step="100000" 
+                value="2500000" 
+                class="w-full accent-emerald-500 bg-slate-800 rounded-lg h-2 cursor-pointer"
+                oninput="updateRoiCalc()"
+              />
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
+              💡 <em>Base de cálculo:</em> Redução do tempo de resposta de 2 horas para 45 segundos aumenta a taxa de conversão de agendamentos em média 28%.
+            </div>
+          </div>
+
+          <!-- Resultado Estimado -->
+          <div class="p-6 rounded-2xl bg-slate-950 border border-emerald-500/30 text-center space-y-4">
+            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Potencial de VGV Adicional Mensal</span>
+            <div id="resultAdditionalVgv" class="font-display text-3xl sm:text-4xl font-extrabold text-emerald-400">
+              + R$ 700.000,00
+            </div>
+            
+            <div class="pt-4 border-t border-slate-800">
+              <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Honorários / Comissões Extras Estimadas</span>
+              <div id="resultAdditionalFees" class="font-display text-2xl sm:text-3xl font-extrabold text-white mt-1">
+                + R$ 42.000,00 / mês
+              </div>
+            </div>
+
+            <a 
+              href="https://aicrm.acertgo.com.br/" 
+              class="inline-block w-full py-3 px-6 rounded-xl font-bold text-sm text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition-colors shadow-lg shadow-emerald-500/20"
+            >
+              Começar a Escalar Agora
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Seção 3: Planos e Preços -->
+  <section id="planos" class="py-24 bg-slate-900/40 border-t border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3">Transparência Total</h2>
+        <h3 class="font-display text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Planos sob medida para qualquer tamanho de operação
+        </h3>
+        <p class="text-slate-400 text-sm sm:text-base">
+          Sem taxas ocultas, sem limites abusivos e com suporte executivo dedicado.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        
+        <!-- Plano Starter -->
+        <div class="glass-card rounded-3xl p-8 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Starter</span>
+            <h4 class="text-2xl font-bold text-white mt-1 mb-2">Imobiliária em Expansão</h4>
+            <p class="text-xs text-slate-400 mb-6">Para equipes que buscam profissionalizar a captação e roleta.</p>
+            <div class="text-3xl font-display font-extrabold text-white mb-6">
+              R$ 389 <span class="text-sm font-normal text-slate-400">/ mês</span>
+            </div>
+            <ul class="text-xs text-slate-300 space-y-3 mb-8">
+              <li class="flex items-center gap-2">✓ Até 8 Corretores inclusos</li>
+              <li class="flex items-center gap-2">✓ Roleta de Leads WhatsApp</li>
+              <li class="flex items-center gap-2">✓ CRM Kanban Completo</li>
+              <li class="flex items-center gap-2">✓ Estoque de Imóveis ilimitado</li>
+              <li class="flex items-center gap-2">✓ Backup diário seguro</li>
+            </ul>
+          </div>
+          <a 
+            href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20assinar%20o%20Plano%20Starter%20da%20AcertGo." 
+            target="_blank"
+            class="w-full text-center py-3 rounded-xl font-bold text-xs text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors"
+          >
+            Assinar Starter
+          </a>
+        </div>
+
+        <!-- Plano Growth (Destaque) -->
+        <div class="relative glass-card rounded-3xl p-8 flex flex-col justify-between border-2 border-blue-500 shadow-2xl shadow-blue-500/10">
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-blue-600 to-emerald-500 text-white text-[10px] font-black uppercase tracking-wider shadow-md">
+            Mais Escolhido
+          </div>
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-blue-400">Growth Pro</span>
+            <h4 class="text-2xl font-bold text-white mt-1 mb-2">Alta Rotação</h4>
+            <p class="text-xs text-slate-400 mb-6">Para imobiliárias e loteadoras com volume intenso de fechamentos.</p>
+            <div class="text-3xl font-display font-extrabold text-white mb-6">
+              R$ 749 <span class="text-sm font-normal text-slate-400">/ mês</span>
+            </div>
+            <ul class="text-xs text-slate-300 space-y-3 mb-8">
+              <li class="flex items-center gap-2">✓ Até 25 Corretores inclusos</li>
+              <li class="flex items-center gap-2">✓ Roleta Inteligente com SLA rigoroso</li>
+              <li class="flex items-center gap-2">✓ Espelho de Vendas 360 Interativo</li>
+              <li class="flex items-center gap-2">✓ Split Fintech Bancário Automático</li>
+              <li class="flex items-center gap-2">✓ Modo TV Salão 16:9 em tempo real</li>
+              <li class="flex items-center gap-2">✓ Esteira CCA Bancária</li>
+            </ul>
+          </div>
+          <a 
+            href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20assinar%20o%20Plano%20Growth%20Pro%20da%20AcertGo." 
+            target="_blank"
+            class="w-full text-center py-3.5 rounded-xl font-bold text-xs text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition-all"
+          >
+            Assinar Growth Pro
+          </a>
+        </div>
+
+        <!-- Plano Enterprise -->
+        <div class="glass-card rounded-3xl p-8 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-400">Enterprise</span>
+            <h4 class="text-2xl font-bold text-white mt-1 mb-2">Redes & Loteadoras</h4>
+            <p class="text-xs text-slate-400 mb-6">Múltiplas filiais, franquias e operações de alta complexidade.</p>
+            <div class="text-3xl font-display font-extrabold text-white mb-6">
+              Sob Consulta
+            </div>
+            <ul class="text-xs text-slate-300 space-y-3 mb-8">
+              <li class="flex items-center gap-2">✓ Corretores e filiais ilimitados</li>
+              <li class="flex items-center gap-2">✓ Multi-tenancy com governança isolada</li>
+              <li class="flex items-center gap-2">✓ API aberta & Webhooks de alta performance</li>
+              <li class="flex items-center gap-2">✓ Gerente de Contas dedicado</li>
+              <li class="flex items-center gap-2">✓ Treinamento e implantação assistida</li>
+            </ul>
+          </div>
+          <a 
+            href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20solicitar%20uma%20proposta%20Enterprise%20da%20AcertGo." 
+            target="_blank"
+            class="w-full text-center py-3 rounded-xl font-bold text-xs text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors"
+          >
+            Falar com Especialista
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Seção 4: Perguntas Frequentes (FAQ) -->
+  <section id="faq" class="py-24 relative">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center mb-16">
+        <h2 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-3">Tire Suas Dúvidas</h2>
+        <h3 class="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          Perguntas Frequentes sobre o AcertGo
+        </h3>
+      </div>
+
+      <div class="space-y-4">
+        
+        <div class="glass-card rounded-2xl p-6 cursor-pointer" onclick="toggleFaq(this)">
+          <div class="flex items-center justify-between font-bold text-base text-white">
+            <span>Como funciona a separação entre este site institucional e o CRM?</span>
+            <span class="faq-icon text-xl text-blue-400">+</span>
+          </div>
+          <div class="faq-content hidden mt-3 text-sm text-slate-400 leading-relaxed border-t border-slate-800/80 pt-3">
+            O site institucional público fica alocado na raiz <strong>acertgo.com.br</strong> (apresentando a sua marca e soluções), enquanto o ambiente seguro e autenticado do CRM / ERP opera isoladamente no subdomínio de alta disponibilidade <strong>aicrm.acertgo.com.br</strong>. Isso garante velocidade máxima e total proteção aos dados confidenciais da sua equipe.
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 cursor-pointer" onclick="toggleFaq(this)">
+          <div class="flex items-center justify-between font-bold text-base text-white">
+            <span>Como funciona a Roleta de Leads no WhatsApp?</span>
+            <span class="faq-icon text-xl text-blue-400">+</span>
+          </div>
+          <div class="faq-content hidden mt-3 text-sm text-slate-400 leading-relaxed border-t border-slate-800/80 pt-3">
+            Quando um lead entra através de campanhas no Meta, Google, portais ou formulário do site, o motor da AcertGo seleciona o corretor da vez conforme a fila de plantão configurada. O corretor recebe imediatamente o alerta com os dados do cliente no celular e tem um tempo limite (ex: 5 minutos) para iniciar o contato. Se não responder a tempo, o lead roda automaticamente para o próximo colega.
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 cursor-pointer" onclick="toggleFaq(this)">
+          <div class="flex items-center justify-between font-bold text-base text-white">
+            <span>Posso exportar ou baixar o banco de dados da minha imobiliária?</span>
+            <span class="faq-icon text-xl text-blue-400">+</span>
+          </div>
+          <div class="faq-content hidden mt-3 text-sm text-slate-400 leading-relaxed border-t border-slate-800/80 pt-3">
+            Sim! Todo administrador de imobiliária tem à disposição um botão de download em 1 clique dentro do CRM para baixar o snapshot completo do seu banco de dados em formato JSON/estruturado, garantindo total soberania e portabilidade sobre os dados dos seus clientes e imóveis.
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 cursor-pointer" onclick="toggleFaq(this)">
+          <div class="flex items-center justify-between font-bold text-base text-white">
+            <span>A migração dos dados do meu sistema anterior é fácil?</span>
+            <span class="faq-icon text-xl text-blue-400">+</span>
+          </div>
+          <div class="faq-content hidden mt-3 text-sm text-slate-400 leading-relaxed border-t border-slate-800/80 pt-3">
+            Sim. O AcertGo possui importador inteligente compatível com planilhas Excel/CSV e os principais sistemas do mercado brasileiro. Nossa equipe técnica auxilia em todo o processo para que você não perca nenhum histórico.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA de Fechamento -->
+  <section class="py-20 relative bg-gradient-to-t from-blue-950/40 to-slate-950 border-t border-slate-800">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <h3 class="font-display text-3xl sm:text-5xl font-extrabold text-white mb-4">
+        Pronto para transformar sua imobiliária em uma máquina de vendas?
+      </h3>
+      <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto mb-8">
+        Junte-se a mais de 350 imobiliárias que já escalaram sua conversão com a governança da AcertGo.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a 
+          href="https://aicrm.acertgo.com.br/" 
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-base text-white bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-600/30 transition-all hover:scale-105"
+        >
+          <span>Acessar Plataforma Agora</span>
+          <svg class="w-5 h-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 bg-slate-950 border-t border-slate-900 text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-xs">
+          A
+        </div>
+        <div>
+          <span class="font-bold text-slate-300">AcertGo OS</span>
+          <span> — Plataforma de Gestão Imobiliária & Fintech</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <a href="#solucoes" class="hover:text-slate-300 transition-colors">Soluções</a>
+        <a href="#planos" class="hover:text-slate-300 transition-colors">Planos</a>
+        <a href="https://aicrm.acertgo.com.br/" class="text-blue-400 hover:text-blue-300 font-bold transition-colors">Acessar CRM (aicrm)</a>
+      </div>
+
+      <div>
+        © 2026 AcertGo. Todos os direitos reservados.
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Botão Flutuante do WhatsApp -->
+  <a 
+    href="https://wa.me/5511999999999?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20AcertGo." 
+    target="_blank" 
+    rel="noopener noreferrer"
+    class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 hover:scale-110 active:scale-95 transition-all"
+    title="Falar no WhatsApp"
+  >
+    <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.586 1.761.88 2.79.88 3.179 0 5.767-2.587 5.767-5.766.001-3.18-2.587-5.766-5.766-5.766zm9.969 5.766c0 5.519-4.481 10-10 10-1.802 0-3.488-.479-4.945-1.312l-5.055 1.374 1.398-4.952c-.908-1.517-1.429-3.292-1.429-5.187 0-5.519 4.481-10 10-10 5.519 0 10 4.481 10 10z"/>
+    </svg>
+  </a>
+
+  <!-- Script Interativo (FAQ + Calculadora de ROI) -->
+  <script>
+    // FAQ Accordion
+    function toggleFaq(element) {
+      const content = element.querySelector('.faq-content');
+      const icon = element.querySelector('.faq-icon');
+      const isHidden = content.classList.contains('hidden');
+      
+      // Fecha todos os outros
+      document.querySelectorAll('.faq-content').forEach(c => c.classList.add('hidden'));
+      document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+
+      if (isHidden) {
+        content.classList.remove('hidden');
+        icon.textContent = '−';
+      }
+    }
+
+    // Calculadora de ROI
+    function updateRoiCalc() {
+      const brokers = parseInt(document.getElementById('rangeBrokers').value, 10);
+      const vgv = parseFloat(document.getElementById('rangeVgv').value);
+
+      document.getElementById('labelBrokers').textContent = brokers + (brokers === 1 ? ' corretor' : ' corretores');
+      document.getElementById('labelVgv').textContent = 'R$ ' + vgv.toLocaleString('pt-BR');
+
+      // Ganhos calculados: aumento de ~28% de velocidade convertida em VGV
+      const additionalVgv = vgv * 0.28;
+      const additionalFees = additionalVgv * 0.06; // 6% de honorários imobiliários padrão
+
+      document.getElementById('resultAdditionalVgv').textContent = '+ R$ ' + additionalVgv.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('resultAdditionalFees').textContent = '+ R$ ' + additionalFees.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' / mês';
+    }
+
+    // Executa uma vez ao carregar
+    updateRoiCalc();
+
+    // Redirecionamento limpo caso venha com ?goto=crm
+    if (window.location.search.includes('goto=crm') || window.location.hash.includes('/crm')) {
+      window.location.href = 'https://aicrm.acertgo.com.br/';
+    }
+  </script>
+</body>
+</html>

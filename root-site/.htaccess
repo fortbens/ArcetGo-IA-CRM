@@ -1,0 +1,58 @@
+# ====================================================================
+# Configuração Apache / LiteSpeed cPanel HomeHost
+# AcertGo - Domínio Principal / Raiz Institucional (public_html/)
+# ====================================================================
+
+# 1. SEGURANÇA: Desabilitar listagem de diretórios (Impede absolutamente o erro "Index of /")
+Options -Indexes
+DirectoryIndex index.html index.htm
+
+# 2. Desativar LiteSpeed Cache no servidor (evita cache de HTML pelo servidor)
+<IfModule LiteSpeed>
+  CacheLookup off
+  CacheDisable
+</IfModule>
+
+# 3. Desativar ETag para forçar navegadores a buscarem a versão atualizada
+<IfModule mod_headers.c>
+  Header always unset ETag
+</IfModule>
+FileETag None
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Forçar HTTPS (SSL gratuito HomeHost Let's Encrypt)
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Se acessar rotas operacionais do CRM na raiz, redirecionar com 301 para o subdomínio aicrm
+  RewriteRule ^(crm|login|painel|app)/?$ https://aicrm.acertgo.com.br/ [R=301,L]
+
+  # Se o arquivo físico ou diretório existir, serve diretamente
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Caso contrário, serve a landing page institucional
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Compressão GZIP / Deflate para alta velocidade
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml
+</IfModule>
+
+# Controle de Cache: HTML sempre atualizado
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm)$">
+    Header always set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+  </FilesMatch>
+
+  <FilesMatch "\.(js|css|webp|png|jpg|jpeg|gif|svg|ico|woff|woff2)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>

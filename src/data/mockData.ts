@@ -182,6 +182,56 @@ export const INITIAL_ROLETA_QUEUES: RoletaQueue[] = [
 
 export const INITIAL_LEADS: Lead[] = [
   {
+    id: 'lead_novo_sla_1',
+    name: 'Carolina Bittencourt',
+    phone: '(11) 98112-9988',
+    email: 'carolina.bittencourt@invest.com.br',
+    source: 'PORTAL_ZAP',
+    stage: 'NOVO_LEAD',
+    assignedBrokerId: 'usr_corretor_juliana',
+    assignedBrokerName: 'Juliana Mendes',
+    assignedBrokerAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150',
+    interestType: 'COMPRA',
+    propertyOfInterestTitle: 'Apartamento Duplex Jardins (180m²)',
+    budgetMin: 1900000,
+    budgetMax: 2500000,
+    tags: ['Novo Lead', 'Alerta SLA', 'Alto Padrão'],
+    unreadMessagesCount: 1,
+    lastMessageText: 'Olá, gostaria de saber se este duplex aceita permuta e se tem vaga para visitante.',
+    lastMessageTime: 'Há 45 min',
+    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    rating: 4,
+    timeline: [
+      { id: 'tl_novo_1', leadId: 'lead_novo_sla_1', type: 'STATUS_CHANGE', title: 'Lead Ingressou no Sistema', description: 'Lead captado via Portal ZAP e aguardando primeiro contato.', authorName: 'Portal ZAP', authorRole: 'Integração', timestamp: 'Há 45 min' }
+    ],
+    followUps: []
+  },
+  {
+    id: 'lead_novo_sla_2',
+    name: 'Lucas Nogueira',
+    phone: '(11) 97455-1234',
+    email: 'lucas.nogueira@techcorp.com.br',
+    source: 'SITE_OFICIAL',
+    stage: 'NOVO_LEAD',
+    assignedBrokerId: 'usr_corretor_roberto',
+    assignedBrokerName: 'Roberto Silveira',
+    assignedBrokerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    interestType: 'LANCAMENTO',
+    propertyOfInterestTitle: 'Studio Smart Faria Lima',
+    budgetMin: 650000,
+    budgetMax: 850000,
+    tags: ['Site Próprio', 'Investidor'],
+    unreadMessagesCount: 1,
+    lastMessageText: 'Qual a previsão de entrega e tabela de fluxo do Studio?',
+    lastMessageTime: 'Há 12 min',
+    createdAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
+    rating: 3,
+    timeline: [
+      { id: 'tl_novo_2', leadId: 'lead_novo_sla_2', type: 'STATUS_CHANGE', title: 'Lead Ingressou via Site Oficial', description: 'Formulário de captação preenchido no site do corretor.', authorName: 'Site Oficial', authorRole: 'Integração', timestamp: 'Há 12 min' }
+    ],
+    followUps: []
+  },
+  {
     id: 'lead_1',
     name: 'Elisangela da Cruz',
     phone: '119867547242',

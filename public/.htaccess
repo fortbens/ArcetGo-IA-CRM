@@ -4,13 +4,17 @@
 # Controle Estrito de Cache & Roteamento SPA
 # ====================================================================
 
-# 1. Desativar LiteSpeed Cache no servidor (evita cache de HTML pelo servidor)
+# 1. Desabilitar listagem de diretórios (evita tela "Index of /" mesmo com pasta vazia)
+Options -Indexes
+DirectoryIndex index.html index.htm
+
+# 2. Desativar LiteSpeed Cache no servidor (evita cache de HTML pelo servidor)
 <IfModule LiteSpeed>
   CacheLookup off
   CacheDisable
 </IfModule>
 
-# 2. Desativar ETag para forçar navegadores a sempre buscarem a versão mais recente
+# 3. Desativar ETag para forçar navegadores a sempre buscarem a versão mais recente
 <IfModule mod_headers.c>
   Header always unset ETag
 </IfModule>

@@ -656,8 +656,8 @@ export const IntegrationsHubView: React.FC<IntegrationsHubViewProps> = ({
                     <span className="text-slate-500">Diretório Exclusivo CRM:</span>
                     <strong className="text-emerald-700 font-mono font-bold">{cpanelTargetDir}</strong>
                   </div>
-                  <div className="text-[10px] text-amber-700 bg-amber-50 p-1.5 rounded-lg border border-amber-200">
-                    🛡️ Raiz (public_html/) reservada exclusivamente para o site da Fortbens. O CRM opera isolado no subdomínio aicrm.
+                  <div className="text-[10px] text-blue-700 bg-blue-50 p-1.5 rounded-lg border border-blue-200">
+                    🛡️ <strong>Raiz (public_html/):</strong> Landing Page oficial AcertGo (dist-root/) com <code>Options -Indexes</code>. CRM opera isolado em <code>public_html/aicrm/</code>.
                   </div>
                   <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100">
                     <span className="text-emerald-700 font-bold flex items-center gap-1">

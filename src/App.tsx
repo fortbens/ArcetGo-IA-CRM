@@ -2964,7 +2964,15 @@ export default function App() {
           )}
 
           {currentTab === 'brand_equity' && (
-            <BrandEquityView />
+            <BrandEquityView
+              currentTenant={activeTenant}
+              defaultLogoUrl={themeConfig.logoUrl || activeTenant?.logoUrl || websiteConfig.logoUrl}
+              defaultAgencyName={activeTenant?.tradeName || websiteConfig.siteName}
+              defaultPhone={websiteConfig.phone || activeTenant?.ownerPhone}
+              defaultWhatsapp={websiteConfig.whatsapp || activeTenant?.ownerPhone}
+              defaultSite={websiteConfig.customDomain || activeTenant?.customDomain || 'acertgo.com.br'}
+              defaultCreci={activeTenant?.creciJ || '34982-J'}
+            />
           )}
 
           {currentTab === 'fleet_assets' && (

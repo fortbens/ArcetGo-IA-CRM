@@ -22,11 +22,15 @@ import {
   Upload, 
   Layers,
   FileCheck2,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Image as ImageIcon,
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 import { BRAND_EQUITY_CONFIG } from '../../data/mockData';
 import { generatePropertyDescription } from '../../services/aiService';
 import { optimizeImageFile } from '../../utils/imageOptimizer';
+import { TenantAgency } from '../../types/superAdmin';
 
 export type PlacaFinalidade = 'VENDE-SE' | 'ALUGA-SE' | 'VENDE OU ALUGA' | 'LANÇAMENTO' | 'OPORTUNIDADE';
 
@@ -69,7 +73,25 @@ export const PLACA_PALETAS = [
   { id: 'luxo_preto_ouro', name: 'Preto & Ouro Imperial (Alto Padrão)', bgHeader: '#0F172A', textHeader: '#F59E0B', bgBody: '#020617', textBody: '#F8FAFC', accent: '#D97706' },
 ];
 
-export const BrandEquityView: React.FC = () => {
+export interface BrandEquityViewProps {
+  currentTenant?: TenantAgency | null;
+  defaultLogoUrl?: string;
+  defaultAgencyName?: string;
+  defaultPhone?: string;
+  defaultWhatsapp?: string;
+  defaultSite?: string;
+  defaultCreci?: string;
+}
+
+export const BrandEquityView: React.FC<BrandEquityViewProps> = ({
+  currentTenant,
+  defaultLogoUrl,
+  defaultAgencyName,
+  defaultPhone,
+  defaultWhatsapp,
+  defaultSite,
+  defaultCreci
+}) => {
   const [config] = useState(BRAND_EQUITY_CONFIG);
 
   // States for Placa Crafting Studio
@@ -81,12 +103,20 @@ export const BrandEquityView: React.FC = () => {
   const [paletaId, setPaletaId] = useState<string>('azul_branco');
   
   // Contacts on Placa
-  const [telefone, setTelefone] = useState('(11) 3045-8000');
-  const [whatsapp, setWhatsapp] = useState('(11) 98844-3322');
-  const [site, setSite] = useState('acertgo.com.br');
-  const [creci, setCreci] = useState('CRECI 34982-J');
+  const [telefone, setTelefone] = useState(defaultPhone || currentTenant?.ownerPhone || '(11) 3045-8000');
+  const [whatsapp, setWhatsapp] = useState(defaultWhatsapp || currentTenant?.ownerPhone || '(11) 98844-3322');
+  const [site, setSite] = useState(defaultSite || currentTenant?.subdomain || 'acertgo.com.br');
+  const [creci, setCreci] = useState(defaultCreci || currentTenant?.creciJ || 'CRECI 34982-J');
   const [propertyCode, setPropertyCode] = useState('ACG-8942');
-  const [placaLogoUrl, setPlacaLogoUrl] = useState<string>('');
+
+  // Agency Logo on Placa
+  const [showLogoOnPlaca, setShowLogoOnPlaca] = useState<boolean>(true);
+  const [placaLogoUrl, setPlacaLogoUrl] = useState<string>(
+    defaultLogoUrl || currentTenant?.logoUrl || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200&q=80'
+  );
+  const [placaLogoPosition, setPlacaLogoPosition] = useState<'HEADER' | 'CORPO' | 'RODAPE'>('HEADER');
+  const [placaLogoSize, setPlacaLogoSize] = useState<'PEQUENO' | 'MEDIO' | 'GRANDE'>('MEDIO');
+  const [placaLogoBg, setPlacaLogoBg] = useState<'BRANCO_CARD' | 'TRANSPARENTE'>('BRANCO_CARD');
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Feedback states
@@ -111,11 +141,15 @@ export const BrandEquityView: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const optimized = await optimizeImageFile(file, { maxWidth: 600, maxHeight: 300, quality: 0.9 });
+      const optimized = await optimizeImageFile(file, { maxWidth: 800, maxHeight: 400, quality: 0.95 });
       setPlacaLogoUrl(optimized);
+      setShowLogoOnPlaca(true);
     } catch {
       const reader = new FileReader();
-      reader.onload = (event) => setPlacaLogoUrl(event.target?.result as string);
+      reader.onload = (event) => {
+        setPlacaLogoUrl(event.target?.result as string);
+        setShowLogoOnPlaca(true);
+      };
       reader.readAsDataURL(file);
     }
     e.target.value = '';
@@ -157,11 +191,24 @@ export const BrandEquityView: React.FC = () => {
             .placa-header {
               background-color: ${selectedPaleta.bgHeader};
               color: ${selectedPaleta.textHeader};
-              padding: 24px 16px;
-              font-size: 42px;
-              font-weight: 900;
+              padding: 20px 16px;
               letter-spacing: 2px;
               text-transform: uppercase;
+            }
+            .placa-logo-container {
+              display: inline-block;
+              margin-bottom: 8px;
+              ${placaLogoBg === 'BRANCO_CARD' ? 'background: #ffffff; padding: 6px 14px; border-radius: 8px;' : ''}
+            }
+            .placa-logo-img {
+              max-height: ${placaLogoSize === 'PEQUENO' ? '45px' : placaLogoSize === 'MEDIO' ? '65px' : '90px'};
+              max-width: 260px;
+              object-fit: contain;
+            }
+            .placa-finalidade-text {
+              font-size: 40px;
+              font-weight: 900;
+              margin: 0;
             }
             .placa-sub {
               font-size: 20px;
@@ -192,21 +239,47 @@ export const BrandEquityView: React.FC = () => {
         <body>
           <div class="placa-box">
             <div class="placa-header">
-              ${finalidade}
+              ${showLogoOnPlaca && placaLogoUrl && placaLogoPosition === 'HEADER' ? `
+                <div class="placa-logo-container">
+                  <img src="${placaLogoUrl}" class="placa-logo-img" alt="Logo Imobiliária" />
+                </div>
+              ` : ''}
+              <div class="placa-finalidade-text">
+                ${finalidade}
+              </div>
             </div>
+
             <div class="placa-sub">
               ${activeTipoPlaca}
             </div>
-            <div style="padding: 15px;">
-              <img src="${qrCodeImgUrl}" style="width: 160px; height: 160px; border: 4px solid #fff;" />
+
+            ${showLogoOnPlaca && placaLogoUrl && placaLogoPosition === 'CORPO' ? `
+              <div style="margin: 12px 0;">
+                <div class="placa-logo-container">
+                  <img src="${placaLogoUrl}" class="placa-logo-img" alt="Logo Imobiliária" />
+                </div>
+              </div>
+            ` : ''}
+
+            <div style="padding: 12px;">
+              <img src="${qrCodeImgUrl}" style="width: 160px; height: 160px; border: 4px solid #fff; border-radius: 8px;" />
             </div>
+
             <div class="placa-contacts">
               <div class="contact-item">📞 ${telefone}</div>
               <div class="contact-item">💬 WhatsApp: ${whatsapp}</div>
             </div>
+
             <div style="font-size: 18px; font-weight: 800; padding-bottom: 12px;">
               🌐 ${site}
             </div>
+
+            ${showLogoOnPlaca && placaLogoUrl && placaLogoPosition === 'RODAPE' ? `
+              <div style="padding-bottom: 10px;">
+                <img src="${placaLogoUrl}" style="max-height: 40px; max-width: 180px; object-fit: contain;" alt="Logo Imobiliária" />
+              </div>
+            ` : ''}
+
             <div class="placa-footer">
               REF: ${propertyCode} • ${creci} • FORMATO: ${selectedDimensao.label} (${selectedDimensao.materialSugerido})
             </div>
@@ -220,7 +293,7 @@ export const BrandEquityView: React.FC = () => {
     printWindow.document.close();
   };
 
-  // Real Canvas Download in High Resolution
+  // Real Canvas Download in High Resolution (Includes real Logo if enabled)
   const handleDownloadPlacaImage = () => {
     setIsDownloading(true);
 
@@ -240,58 +313,127 @@ export const BrandEquityView: React.FC = () => {
 
     // Header Background
     ctx.fillStyle = selectedPaleta.bgHeader;
-    ctx.fillRect(0, 0, 1200, 360);
+    ctx.fillRect(0, 0, 1200, 390);
 
-    // Header Text (Finalidade)
-    ctx.fillStyle = selectedPaleta.textHeader;
-    ctx.font = 'bold 92px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(finalidade, 600, 220);
+    const finishCanvasExport = (loadedLogo?: HTMLImageElement) => {
+      // 1. Logo in Header
+      if (loadedLogo && showLogoOnPlaca && placaLogoPosition === 'HEADER') {
+        const logoW = placaLogoSize === 'PEQUENO' ? 240 : placaLogoSize === 'MEDIO' ? 340 : 440;
+        const logoH = placaLogoSize === 'PEQUENO' ? 70 : placaLogoSize === 'MEDIO' ? 95 : 125;
+        const logoX = 600 - (logoW / 2);
+        const logoY = 35;
 
-    // Tipo de Placa
-    ctx.fillStyle = selectedPaleta.textBody;
-    ctx.font = 'bold 52px sans-serif';
-    ctx.fillText(activeTipoPlaca.toUpperCase(), 600, 480);
+        if (placaLogoBg === 'BRANCO_CARD') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(logoX - 16, logoY - 10, logoW + 32, logoH + 20, 14);
+          } else {
+            ctx.rect(logoX - 16, logoY - 10, logoW + 32, logoH + 20);
+          }
+          ctx.fill();
+        }
 
-    // Telefone
-    ctx.fillStyle = selectedPaleta.textBody;
-    ctx.font = 'bold 64px sans-serif';
-    ctx.fillText(`TEL: ${telefone}`, 600, 620);
+        ctx.drawImage(loadedLogo, logoX, logoY, logoW, logoH);
 
-    // WhatsApp
-    ctx.fillStyle = '#059669';
-    ctx.font = 'bold 64px sans-serif';
-    ctx.fillText(`WHATSAPP: ${whatsapp}`, 600, 720);
+        // Header Text below logo
+        ctx.fillStyle = selectedPaleta.textHeader;
+        ctx.font = 'bold 84px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(finalidade, 600, 310);
+      } else {
+        // Centered Header Text
+        ctx.fillStyle = selectedPaleta.textHeader;
+        ctx.font = 'bold 96px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(finalidade, 600, 240);
+      }
 
-    // Site
-    ctx.fillStyle = selectedPaleta.textBody;
-    ctx.font = 'bold 44px sans-serif';
-    ctx.fillText(`SITE: ${site}`, 600, 820);
+      // 2. Tipo de Placa
+      ctx.fillStyle = selectedPaleta.textBody;
+      ctx.font = 'bold 50px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(activeTipoPlaca.toUpperCase(), 600, 480);
 
-    // QR Code Image
-    const qrImg = new Image();
-    qrImg.crossOrigin = 'anonymous';
-    qrImg.onload = () => {
-      ctx.drawImage(qrImg, 425, 900, 350, 350);
+      // 3. Logo in Corpo (between type and contacts/QR)
+      if (loadedLogo && showLogoOnPlaca && placaLogoPosition === 'CORPO') {
+        const logoW = placaLogoSize === 'PEQUENO' ? 220 : placaLogoSize === 'MEDIO' ? 300 : 380;
+        const logoH = placaLogoSize === 'PEQUENO' ? 65 : placaLogoSize === 'MEDIO' ? 85 : 110;
+        const logoX = 600 - (logoW / 2);
+        const logoY = 530;
 
-      // Footer
-      ctx.fillStyle = '#64748B';
-      ctx.font = '32px monospace';
-      ctx.fillText(`CÓD: ${propertyCode} • ${creci}`, 600, 1380);
-      ctx.fillText(`FORMATO: ${selectedDimensao.label} (${selectedDimensao.materialSugerido})`, 600, 1440);
+        if (placaLogoBg === 'BRANCO_CARD') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(logoX - 16, logoY - 10, logoW + 32, logoH + 20, 14);
+          } else {
+            ctx.rect(logoX - 16, logoY - 10, logoW + 32, logoH + 20);
+          }
+          ctx.fill();
+        }
 
-      const dataUrl = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = `placa-${finalidade.toLowerCase().replace(/\s+/g, '-')}-${selectedDimensao.id}.png`;
-      a.click();
-      setIsDownloading(false);
+        ctx.drawImage(loadedLogo, logoX, logoY, logoW, logoH);
+      }
+
+      // 4. Telefone
+      ctx.fillStyle = selectedPaleta.textBody;
+      ctx.font = 'bold 64px sans-serif';
+      ctx.fillText(`TEL: ${telefone}`, 600, 680);
+
+      // 5. WhatsApp
+      ctx.fillStyle = '#059669';
+      ctx.font = 'bold 64px sans-serif';
+      ctx.fillText(`WHATSAPP: ${whatsapp}`, 600, 770);
+
+      // 6. Site
+      ctx.fillStyle = selectedPaleta.textBody;
+      ctx.font = 'bold 44px sans-serif';
+      ctx.fillText(`SITE: ${site}`, 600, 860);
+
+      // 7. QR Code Image
+      const qrImg = new Image();
+      qrImg.crossOrigin = 'anonymous';
+      qrImg.onload = () => {
+        ctx.drawImage(qrImg, 425, 930, 350, 350);
+
+        // 8. Logo in Rodape
+        if (loadedLogo && showLogoOnPlaca && placaLogoPosition === 'RODAPE') {
+          const logoW = 220;
+          const logoH = 65;
+          ctx.drawImage(loadedLogo, 600 - (logoW / 2), 1320, logoW, logoH);
+        }
+
+        // 9. Footer
+        ctx.fillStyle = '#64748B';
+        ctx.font = '30px monospace';
+        ctx.fillText(`CÓD: ${propertyCode} • ${creci}`, 600, 1460);
+        ctx.fillText(`FORMATO: ${selectedDimensao.label} (${selectedDimensao.materialSugerido})`, 600, 1515);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `placa-${finalidade.toLowerCase().replace(/\s+/g, '-')}-${selectedDimensao.id}.png`;
+        a.click();
+        setIsDownloading(false);
+      };
+      qrImg.onerror = () => {
+        setIsDownloading(false);
+        window.open(qrCodeImgUrl, '_blank');
+      };
+      qrImg.src = qrCodeImgUrl;
     };
-    qrImg.onerror = () => {
-      setIsDownloading(false);
-      window.open(qrCodeImgUrl, '_blank');
-    };
-    qrImg.src = qrCodeImgUrl;
+
+    // Preload Logo if enabled
+    if (showLogoOnPlaca && placaLogoUrl) {
+      const logoImg = new Image();
+      logoImg.crossOrigin = 'anonymous';
+      logoImg.onload = () => finishCanvasExport(logoImg);
+      logoImg.onerror = () => finishCanvasExport();
+      logoImg.src = placaLogoUrl;
+    } else {
+      finishCanvasExport();
+    }
   };
 
   // Copy Specs for Graphic Shop
@@ -299,6 +441,7 @@ export const BrandEquityView: React.FC = () => {
     const text = `*ESPECIFICAÇÕES PARA CONFECÇÃO DE PLACA IMOBILIÁRIA*\n` +
       `• Finalidade: ${finalidade}\n` +
       `• Tipo de Imóvel: ${activeTipoPlaca}\n` +
+      `• Logotipo da Imobiliária: ${showLogoOnPlaca ? (placaLogoUrl ? `Sim (Posição: ${placaLogoPosition})` : 'Sim (Logo Oficial)') : 'Sem logotipo'}\n` +
       `• Dimensão: ${selectedDimensao.label} (${selectedDimensao.larguraCm}cm de largura × ${selectedDimensao.alturaCm}cm de altura)\n` +
       `• Material Recomendado: ${selectedDimensao.materialSugerido}\n` +
       `• Aplicação: ${selectedDimensao.aplicacao}\n` +
@@ -476,7 +619,181 @@ export const BrandEquityView: React.FC = () => {
               </div>
             </div>
 
-            {/* 5. Dados de Contato e Identificação */}
+            {/* 5. Opções do Logotipo da Imobiliária na Placa */}
+            <div className="space-y-3 p-4 bg-slate-50/80 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-blue-600" />
+                  <span className="text-xs font-bold text-slate-900">
+                    Logotipo da Imobiliária na Placa
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showLogoOnPlaca}
+                    onChange={(e) => setShowLogoOnPlaca(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                  <span className="ml-2 text-[11px] font-bold text-slate-700">
+                    {showLogoOnPlaca ? 'Exibir na Placa' : 'Ocultar'}
+                  </span>
+                </label>
+              </div>
+
+              {showLogoOnPlaca && (
+                <div className="space-y-3 pt-2 border-t border-slate-200">
+                  {/* Visualização e Ações do Logotipo */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3 bg-white p-3 rounded-xl border border-slate-200">
+                    <div className="w-28 h-16 bg-slate-100 rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 p-1.5 shadow-2xs">
+                      {placaLogoUrl ? (
+                        <img
+                          src={placaLogoUrl}
+                          alt="Logo da Imobiliária"
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      ) : (
+                        <div className="text-center text-[10px] text-slate-400 font-bold leading-tight">
+                          Sem Logo<br />Configurado
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 w-full space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => logoInputRef.current?.click()}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{placaLogoUrl ? 'Substituir Logotipo' : 'Enviar Imagem do Logotipo'}</span>
+                        </button>
+                        <input
+                          ref={logoInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                        />
+
+                        {(defaultLogoUrl || currentTenant?.logoUrl) && placaLogoUrl !== (defaultLogoUrl || currentTenant?.logoUrl) && (
+                          <button
+                            type="button"
+                            onClick={() => setPlacaLogoUrl(defaultLogoUrl || currentTenant?.logoUrl || '')}
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                            title="Restaurar logotipo oficial cadastrado na imobiliária"
+                          >
+                            <RefreshCw className="w-3 h-3 text-slate-500" />
+                            <span>Restaurar Oficial</span>
+                          </button>
+                        )}
+
+                        {placaLogoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setPlacaLogoUrl('')}
+                            className="px-2 py-1.5 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                            title="Remover logotipo da placa"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Remover</span>
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-500">
+                        Aceita PNG, SVG ou JPG em alta resolução. Otimizado para gráficas e corte em chapa.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Posição do Logotipo */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-700 block">
+                      Posição do Logotipo na Placa
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { id: 'HEADER', label: 'Cabeçalho (Topo)' },
+                        { id: 'CORPO', label: 'Centro (Acima QR)' },
+                        { id: 'RODAPE', label: 'Rodapé (Contatos)' }
+                      ].map((pos) => (
+                        <button
+                          key={pos.id}
+                          type="button"
+                          onClick={() => setPlacaLogoPosition(pos.id as any)}
+                          className={`py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center cursor-pointer ${
+                            placaLogoPosition === pos.id
+                              ? 'bg-blue-600 text-white shadow-2xs'
+                              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          {pos.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tamanho e Estilo do Fundo */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        Tamanho da Logo
+                      </label>
+                      <div className="grid grid-cols-3 gap-1">
+                        {(['PEQUENO', 'MEDIO', 'GRANDE'] as const).map((sz) => (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => setPlacaLogoSize(sz)}
+                            className={`py-1 rounded-lg font-bold text-center transition-all cursor-pointer ${
+                              placaLogoSize === sz
+                                ? 'bg-slate-900 text-white'
+                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            {sz === 'PEQUENO' ? 'Pequeno' : sz === 'MEDIO' ? 'Médio' : 'Grande'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1">
+                        Caixa de Fundo da Logo
+                      </label>
+                      <div className="grid grid-cols-2 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setPlacaLogoBg('BRANCO_CARD')}
+                          className={`py-1 rounded-lg font-bold text-center transition-all cursor-pointer ${
+                            placaLogoBg === 'BRANCO_CARD'
+                              ? 'bg-slate-900 text-white'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          Caixa Branca
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPlacaLogoBg('TRANSPARENTE')}
+                          className={`py-1 rounded-lg font-bold text-center transition-all cursor-pointer ${
+                            placaLogoBg === 'TRANSPARENTE'
+                              ? 'bg-slate-900 text-white'
+                              : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          Transparente
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 6. Dados de Contato e Identificação */}
             <div className="pt-2 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="font-bold text-slate-700 block mb-1">Telefone Comercial</label>
@@ -589,16 +906,53 @@ export const BrandEquityView: React.FC = () => {
 
               {/* Sign Header */}
               <div 
-                className="py-6 px-4 shadow-md font-black tracking-wider uppercase text-2xl sm:text-3xl"
+                className="py-5 px-4 shadow-md font-black tracking-wider uppercase flex flex-col items-center justify-center"
                 style={{ backgroundColor: selectedPaleta.bgHeader, color: selectedPaleta.textHeader }}
               >
-                {finalidade}
+                {/* Logo in Header */}
+                {showLogoOnPlaca && placaLogoUrl && placaLogoPosition === 'HEADER' && (
+                  <div className={`mb-2.5 p-1.5 rounded-xl flex items-center justify-center ${
+                    placaLogoBg === 'BRANCO_CARD' ? 'bg-white shadow-sm border border-black/10' : ''
+                  }`}>
+                    <img
+                      src={placaLogoUrl}
+                      alt="Logotipo Imobiliária"
+                      className={`object-contain ${
+                        placaLogoSize === 'PEQUENO' ? 'h-7 sm:h-8 max-w-[140px]' :
+                        placaLogoSize === 'MEDIO' ? 'h-9 sm:h-11 max-w-[180px]' :
+                        'h-12 sm:h-14 max-w-[220px]'
+                      }`}
+                    />
+                  </div>
+                )}
+                <span className="text-2xl sm:text-3xl leading-tight">
+                  {finalidade}
+                </span>
               </div>
 
               {/* Subtitle / Property Type */}
               <div className="py-2.5 px-3 font-extrabold text-sm sm:text-base uppercase tracking-wide border-b border-black/10">
                 {activeTipoPlaca}
               </div>
+
+              {/* Logo in Corpo (above QR) */}
+              {showLogoOnPlaca && placaLogoUrl && placaLogoPosition === 'CORPO' && (
+                <div className="pt-3 pb-1 flex justify-center">
+                  <div className={`p-1.5 rounded-xl flex items-center justify-center ${
+                    placaLogoBg === 'BRANCO_CARD' ? 'bg-white shadow-xs border border-slate-200' : ''
+                  }`}>
+                    <img
+                      src={placaLogoUrl}
+                      alt="Logotipo Imobiliária"
+                      className={`object-contain ${
+                        placaLogoSize === 'PEQUENO' ? 'h-7 max-w-[130px]' :
+                        placaLogoSize === 'MEDIO' ? 'h-10 max-w-[170px]' :
+                        'h-13 max-w-[210px]'
+                      }`}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Center Zone: QR Code & Brand */}
               <div className="p-4 flex flex-col items-center justify-center space-y-2">
@@ -629,6 +983,17 @@ export const BrandEquityView: React.FC = () => {
                 <div className="text-[11px] font-bold text-slate-600 pt-1">
                   🌐 {site}
                 </div>
+
+                {/* Logo in Rodapé */}
+                {showLogoOnPlaca && placaLogoUrl && placaLogoPosition === 'RODAPE' && (
+                  <div className="pt-2 flex justify-center">
+                    <img
+                      src={placaLogoUrl}
+                      alt="Logotipo Imobiliária"
+                      className="h-8 max-w-[160px] object-contain"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Sign Footer */}

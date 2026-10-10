@@ -29,7 +29,8 @@ import {
   Tv,
   Globe,
   Trash2,
-  Download
+  Download,
+  HelpCircle
 } from 'lucide-react';
 import { UserProfile, TenantId } from '../../types/crm';
 import { CURRENT_USER_PROFILES } from '../../data/mockData';
@@ -78,6 +79,7 @@ interface HeaderProps {
   principalManagerEmail?: string;
   onDownloadDatabase?: () => void;
   onOpenAdminProfileCustomizer?: () => void;
+  onOpenHelp?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -121,7 +123,8 @@ export const Header: React.FC<HeaderProps> = ({
   principalManagerName,
   principalManagerEmail,
   onDownloadDatabase,
-  onOpenAdminProfileCustomizer
+  onOpenAdminProfileCustomizer,
+  onOpenHelp
 }) => {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showTenantDropdown, setShowTenantDropdown] = useState(false);
@@ -586,46 +589,47 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-black text-slate-900">Alertas</span>
                   {notifications.filter(n => !n.isRead).length > 0 && (
-                    <span className="text-[10px] text-rose-700 font-black bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded-full">
+                    <span className="text-[9px] text-rose-700 font-black bg-rose-50 border border-rose-200 px-1.5 py-0.2 rounded-full">
                       {notifications.filter(n => !n.isRead).length} novos
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   {onMarkAllNotificationsRead && notifications.some(n => !n.isRead) && (
                     <button
+                      type="button"
                       onClick={onMarkAllNotificationsRead}
-                      className="text-[10px] text-slate-500 hover:text-blue-600 font-bold flex items-center gap-0.5 transition-colors cursor-pointer"
+                      className="text-[9px] text-slate-600 hover:text-blue-700 font-bold bg-slate-100 hover:bg-blue-50 px-2 py-1 rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
                       title="Marcar todas como lidas"
                     >
-                      <Check className="w-3 h-3" />
+                      <Check className="w-3 h-3 text-blue-600" />
                       <span>Lidas</span>
                     </button>
                   )}
                   {onClearAllNotifications && notifications.length > 0 && (
                     <button
+                      type="button"
                       onClick={() => {
-                        if (window.confirm('Deseja excluir todas as notificações permanentemente?')) {
-                          onClearAllNotifications();
-                        }
+                        onClearAllNotifications();
                       }}
-                      className="text-[10px] text-rose-600 hover:text-rose-800 font-bold flex items-center gap-0.5 transition-colors cursor-pointer"
-                      title="Excluir todas definitivamente"
+                      className="text-[9px] text-rose-700 hover:text-rose-900 font-bold bg-rose-50 hover:bg-rose-100 border border-rose-200/80 px-2 py-1 rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                      title="Apagar todas as notificações definitivamente"
                     >
-                      <Trash2 className="w-3 h-3" />
-                      <span>Limpar</span>
+                      <Trash2 className="w-3 h-3 text-rose-600" />
+                      <span>Apagar tudo</span>
                     </button>
                   )}
                   {onOpenNotificationsCenter && (
                     <button
+                      type="button"
                       onClick={() => {
                         setShowNotifications(false);
                         onOpenNotificationsCenter();
                       }}
-                      className="text-[10px] text-blue-600 hover:text-blue-800 font-bold transition-colors cursor-pointer"
+                      className="text-[9px] text-blue-700 hover:text-blue-900 font-bold bg-blue-50 hover:bg-blue-100 border border-blue-200/80 px-2 py-1 rounded-lg flex items-center justify-center gap-0.5 transition-colors cursor-pointer"
                     >
-                      Ver Central →
+                      <span>Central →</span>
                     </button>
                   )}
                   <button
@@ -665,11 +669,15 @@ export const Header: React.FC<HeaderProps> = ({
                     </p>
                     {onDeleteNotification && (
                       <button
-                        onClick={() => onDeleteNotification(notif.id)}
-                        className="absolute bottom-2 right-2 p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
-                        title="Excluir notificação definitivamente"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteNotification(notif.id);
+                        }}
+                        className="absolute bottom-2 right-2 p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors opacity-80 group-hover:opacity-100 cursor-pointer"
+                        title="Apagar esta notificação"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3 h-3 text-rose-500" />
                       </button>
                     )}
                   </div>
@@ -685,18 +693,20 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Bottom Quick Test Actions */}
               {onTriggerSimulatedPush && (
                 <div className="pt-2.5 mt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Testar Push:</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">Testar Push:</span>
                   <div className="flex items-center gap-1.5">
                     <button
+                      type="button"
                       onClick={() => onTriggerSimulatedPush('LEAD_ROLETA')}
-                      className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[10px] flex items-center gap-1 transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[9px] flex items-center justify-center gap-1 transition-colors border border-rose-200/60 cursor-pointer"
                     >
                       <Flame className="w-3 h-3 text-rose-500" />
                       <span>+ Lead</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => onTriggerSimulatedPush('FINANCEIRO_SPLIT')}
-                      className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[10px] flex items-center gap-1 transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[9px] flex items-center justify-center gap-1 transition-colors border border-emerald-200/60 cursor-pointer"
                     >
                       <Sparkles className="w-3 h-3 text-emerald-600" />
                       <span>+ Pix</span>
@@ -707,6 +717,20 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
         </div>
+
+        {/* Discreet Contextual Help & Support Button (Ao lado do Sininho) */}
+        {onOpenHelp && (
+          <button
+            type="button"
+            onClick={onOpenHelp}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-slate-600 hover:text-blue-600 relative transition-colors cursor-pointer group"
+            title="Central de Ajuda & Guia Rápido"
+            aria-label="Abrir Ajuda do Módulo"
+          >
+            <HelpCircle className="w-4 h-4 stroke-[2]" />
+            <span className="sr-only">Ajuda</span>
+          </button>
+        )}
 
         {/* User RBAC Profile Switcher */}
         <div className="relative border-l border-slate-200 pl-1.5 sm:pl-2">

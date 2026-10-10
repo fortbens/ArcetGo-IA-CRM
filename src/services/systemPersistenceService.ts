@@ -341,7 +341,7 @@ export function getDeletedNotificationIds(): string[] {
 }
 
 export function getInitialNotifications(): SystemNotification[] {
-  if (typeof window === 'undefined') return INITIAL_NOTIFICATIONS;
+  if (typeof window === 'undefined') return [];
   try {
     const wasClearedAll = localStorage.getItem(LOCAL_STORAGE_NOTIFS_CLEARED_FLAG) === 'true';
     const deletedIds = getDeletedNotificationIds();
@@ -350,6 +350,9 @@ export function getInitialNotifications(): SystemNotification[] {
     if (saved) {
       const list: SystemNotification[] = JSON.parse(saved);
       if (Array.isArray(list)) {
+        if (list.length === 0 || wasClearedAll) {
+          return list.filter(n => !deletedIds.includes(n.id));
+        }
         return list.filter(n => !deletedIds.includes(n.id));
       }
     }
@@ -362,7 +365,7 @@ export function getInitialNotifications(): SystemNotification[] {
   } catch (e) {
     console.warn('[Persistence] Erro ao carregar notificações do cache:', e);
   }
-  return INITIAL_NOTIFICATIONS;
+  return [];
 }
 
 export async function saveNotificationsToCloud(
@@ -373,9 +376,11 @@ export async function saveNotificationsToCloud(
     recordDeletedNotificationIds(extraDeletedIds);
   }
 
+  const isCleared = notifications.length === 0;
+
   try {
     localStorage.setItem(LOCAL_STORAGE_NOTIFICATIONS_KEY, JSON.stringify(notifications));
-    if (notifications.length === 0) {
+    if (isCleared) {
       localStorage.setItem(LOCAL_STORAGE_NOTIFS_CLEARED_FLAG, 'true');
     } else {
       localStorage.removeItem(LOCAL_STORAGE_NOTIFS_CLEARED_FLAG);
@@ -389,7 +394,7 @@ export async function saveNotificationsToCloud(
     await setDoc(docRef, {
       notifications,
       deletedIds: getDeletedNotificationIds(),
-      clearedAll: notifications.length === 0,
+      clearedAll: isCleared,
       updatedAt: new Date().toISOString()
     }, { merge: true });
     notifySyncListeners('NOTIFICATIONS', notifications);
@@ -398,14 +403,21 @@ export async function saveNotificationsToCloud(
   }
 }
 
-export async function clearAllNotificationsPermanently(): Promise<void> {
+export async function clearAllNotificationsPermanently(extraDeletedIds?: string[]): Promise<void> {
+  const initialIds = INITIAL_NOTIFICATIONS.map(n => n.id);
+  const idsToRecord = extraDeletedIds && extraDeletedIds.length > 0 
+    ? [...extraDeletedIds, ...initialIds]
+    : initialIds;
+
+  recordDeletedNotificationIds(idsToRecord);
+
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(LOCAL_STORAGE_NOTIFS_CLEARED_FLAG, 'true');
       localStorage.setItem(LOCAL_STORAGE_NOTIFICATIONS_KEY, JSON.stringify([]));
     } catch {}
   }
-  await saveNotificationsToCloud([]);
+  await saveNotificationsToCloud([], idsToRecord);
 }
 
 export function subscribeNotificationsFromCloud(
@@ -423,19 +435,27 @@ export function subscribeNotificationsFromCloud(
             recordDeletedNotificationIds(remoteDeleted);
           }
           const deletedIds = getDeletedNotificationIds();
-          const wasClearedAll = data.clearedAll || localStorage.getItem(LOCAL_STORAGE_NOTIFS_CLEARED_FLAG) === 'true';
-
-          if (wasClearedAll && (!data.notifications || data.notifications.length === 0)) {
-            onUpdate([]);
-            return;
-          }
+          const wasClearedAll = data.clearedAll === true || localStorage.getItem(LOCAL_STORAGE_NOTIFS_CLEARED_FLAG) === 'true';
 
           if (Array.isArray(data.notifications)) {
             const filtered = (data.notifications as SystemNotification[]).filter(n => !deletedIds.includes(n.id));
+            if (wasClearedAll && filtered.length === 0) {
+              try {
+                localStorage.setItem(LOCAL_STORAGE_NOTIFICATIONS_KEY, JSON.stringify([]));
+                localStorage.setItem(LOCAL_STORAGE_NOTIFS_CLEARED_FLAG, 'true');
+              } catch {}
+              onUpdate([]);
+              return;
+            }
             try {
               localStorage.setItem(LOCAL_STORAGE_NOTIFICATIONS_KEY, JSON.stringify(filtered));
+              if (filtered.length > 0) {
+                localStorage.removeItem(LOCAL_STORAGE_NOTIFS_CLEARED_FLAG);
+              }
             } catch {}
             onUpdate(filtered);
+          } else if (wasClearedAll) {
+            onUpdate([]);
           }
         }
       },

@@ -484,6 +484,7 @@ export default function App() {
   const [showFreeAiToolsModal, setShowFreeAiToolsModal] = useState(false);
   const [showTvControlModal, setShowTvControlModal] = useState(false);
   const [showSalesPageLinkModal, setShowSalesPageLinkModal] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isRightRailOpen, setIsRightRailOpen] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -744,16 +745,25 @@ export default function App() {
   };
 
   const handleClearAllNotifications = () => {
+    const allIds = [
+      ...notifications.map(n => n.id),
+      ...INITIAL_NOTIFICATIONS.map(n => n.id)
+    ];
     setNotifications([]);
-    clearAllNotificationsPermanently();
+    clearAllNotificationsPermanently(allIds);
   };
 
   const handleSendNotification = (newNotif: Omit<SystemNotification, 'id' | 'createdAt'>) => {
     const notif: SystemNotification = {
       ...newNotif,
-      id: `notif_${Date.now()}`,
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       createdAt: 'Agora'
     };
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('acertgo_notifications_cleared_all');
+      } catch {}
+    }
     setNotifications(prev => {
       const updated = [notif, ...prev];
       saveNotificationsToCloud(updated);
@@ -2583,6 +2593,7 @@ export default function App() {
         principalManagerEmail={activeTenant?.ownerEmail}
         onDownloadDatabase={handleDownloadTenantDatabase}
         onOpenAdminProfileCustomizer={() => setShowAdminProfileCustomizer(true)}
+        onOpenHelp={() => setIsHelpModalOpen(true)}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
@@ -3340,12 +3351,15 @@ export default function App() {
         />
       )}
 
-      {/* Ícone e Painel Flutuante Permanente de Ajuda Contextual do Módulo */}
+      {/* Painel de Ajuda Contextual do Módulo (Acionado no topo ao lado do sininho) */}
       <ContextualHelpWidget
         currentTab={currentTab}
         onNavigateTab={handleNavigateTab}
         tenantName={activeTenant?.tradeName}
         supportPhone={themeConfig.supportPhone || '(11) 98844-3322'}
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+        showFloatingButton={false}
       />
     </div>
   );

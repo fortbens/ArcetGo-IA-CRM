@@ -396,17 +396,16 @@ export const NotificationCenterView: React.FC<NotificationCenterViewProps> = ({
 
               {onClearAllNotifications && (
                 <button
+                  type="button"
                   onClick={() => {
-                    if (window.confirm('Tem certeza que deseja excluir todas as notificações definitivamente? Elas não voltarão ao recarregar a página.')) {
-                      onClearAllNotifications();
-                    }
+                    onClearAllNotifications();
                   }}
                   disabled={notifications.length === 0}
-                  className="px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 cursor-pointer"
-                  title="Excluir todas as notificações definitivamente"
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 cursor-pointer"
+                  title="Apagar todas as notificações definitivamente"
                 >
                   <Trash2 className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Excluir Todas</span>
+                  <span>Apagar Todas</span>
                 </button>
               )}
             </div>

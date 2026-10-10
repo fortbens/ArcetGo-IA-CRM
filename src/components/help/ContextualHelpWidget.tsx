@@ -22,6 +22,9 @@ interface ContextualHelpWidgetProps {
   onNavigateTab: (tab: NavTabId) => void;
   tenantName?: string;
   supportPhone?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
+  showFloatingButton?: boolean;
 }
 
 interface ModuleHelpGuide {
@@ -244,9 +247,22 @@ export const ContextualHelpWidget: React.FC<ContextualHelpWidgetProps> = ({
   currentTab,
   onNavigateTab,
   tenantName = 'AcertGo Imóveis',
-  supportPhone = '(11) 98844-3322'
+  supportPhone = '(11) 98844-3322',
+  isOpen: controlledIsOpen,
+  onClose: controlledOnClose,
+  showFloatingButton = false
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isHelpOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
+  const handleClose = () => {
+    if (controlledOnClose) {
+      controlledOnClose();
+    } else {
+      setInternalIsOpen(false);
+    }
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFaqIndex, setExpandedFaqIndex] = useState<number | null>(null);
 
@@ -262,30 +278,32 @@ export const ContextualHelpWidget: React.FC<ContextualHelpWidgetProps> = ({
 
   return (
     <>
-      {/* Permanent Floating Button (Docked at Bottom-Right) */}
-      <div className="fixed bottom-5 right-5 z-40 flex items-center group">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-3 bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white rounded-full shadow-2xl hover:shadow-blue-500/30 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center relative cursor-pointer border-2 border-white/20"
-          title={`Ajuda & Guia Rápido: ${guide.title}`}
-          aria-label="Abrir Central de Ajuda do Módulo"
-        >
-          <HelpCircle className="w-6 h-6 stroke-[2.2]" />
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-400 rounded-full ring-2 ring-white animate-pulse" />
-        </button>
+      {/* Permanent Floating Button (Docked at Bottom-Right - only when explicitly enabled) */}
+      {showFloatingButton && (
+        <div className="fixed bottom-5 right-5 z-40 flex items-center group">
+          <button
+            onClick={() => setInternalIsOpen(true)}
+            className="p-3 bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-600 hover:from-blue-600 hover:to-indigo-500 text-white rounded-full shadow-2xl hover:shadow-blue-500/30 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center relative cursor-pointer border-2 border-white/20"
+            title={`Ajuda & Guia Rápido: ${guide.title}`}
+            aria-label="Abrir Central de Ajuda do Módulo"
+          >
+            <HelpCircle className="w-6 h-6 stroke-[2.2]" />
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-400 rounded-full ring-2 ring-white animate-pulse" />
+          </button>
 
-        {/* Hover Pill Label on Desktop */}
-        <div 
-          onClick={() => setIsOpen(true)}
-          className="hidden sm:flex items-center gap-1.5 ml-2.5 px-3 py-1.5 bg-slate-900/90 text-white rounded-full text-xs font-bold shadow-lg border border-slate-700 cursor-pointer opacity-90 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-        >
-          <LifeBuoy className="w-3.5 h-3.5 text-blue-400" />
-          <span>Ajuda: {guide.title}</span>
+          {/* Hover Pill Label on Desktop */}
+          <div 
+            onClick={() => setInternalIsOpen(true)}
+            className="hidden sm:flex items-center gap-1.5 ml-2.5 px-3 py-1.5 bg-slate-900/90 text-white rounded-full text-xs font-bold shadow-lg border border-slate-700 cursor-pointer opacity-90 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+          >
+            <LifeBuoy className="w-3.5 h-3.5 text-blue-400" />
+            <span>Ajuda: {guide.title}</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Slide-over Drawer / Modal for Contextual Help */}
-      {isOpen && (
+      {isHelpOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-end bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150 p-0 sm:p-4">
           <div 
             className="w-full max-w-lg h-full sm:h-auto sm:max-h-[92vh] bg-white rounded-none sm:rounded-3xl shadow-2xl border-0 sm:border border-slate-200 flex flex-col overflow-hidden animate-in slide-in-from-right duration-200"
@@ -311,7 +329,7 @@ export const ContextualHelpWidget: React.FC<ContextualHelpWidgetProps> = ({
               </div>
 
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer shrink-0"
                 title="Fechar Ajuda"
               >
@@ -427,7 +445,7 @@ export const ContextualHelpWidget: React.FC<ContextualHelpWidgetProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setIsOpen(false);
+                  handleClose();
                   onNavigateTab('central_ajuda_sac');
                 }}
                 className="w-full sm:flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
